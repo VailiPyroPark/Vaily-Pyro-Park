@@ -275,16 +275,12 @@ export function OrderDetailsDrawer({
                   {order.items?.map((item) => (
                     <div key={item.product_id} className="py-3 flex items-center justify-between text-xs gap-3">
                       <div className="flex items-center gap-3 truncate pr-2 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden text-base font-bold">
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.product_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            '🎆'
-                          )}
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden text-base font-bold">
+                          <img
+                            src={item.image_url || '/logo.png'}
+                            alt={item.product_name}
+                            className={`w-full h-full ${item.image_url ? 'object-cover' : 'object-contain p-1'}`}
+                          />
                         </div>
                         <div className="truncate min-w-0">
                           <span className="font-extrabold text-slate-950 block truncate text-xs">

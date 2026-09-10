@@ -54,15 +54,11 @@ export function AdminProductModal({ item, product, onClose }: AdminProductModalP
 
           {/* Large Center Product Image */}
           <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto rounded-2xl bg-white text-amber-700 border border-slate-200/90 flex items-center justify-center font-bold text-4xl shadow-sm overflow-hidden">
-            {item.image_url || product?.image_url ? (
-              <img
-                src={item.image_url || product?.image_url}
-                alt={item.product_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              '🎆'
-            )}
+            <img
+              src={item.image_url || product?.image_url || '/logo.png'}
+              alt={item.product_name}
+              className={`w-full h-full ${(item.image_url || product?.image_url) ? 'object-cover' : 'object-contain p-3'}`}
+            />
           </div>
 
           {/* Product Specification Badges */}

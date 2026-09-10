@@ -40,11 +40,11 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Image Column */}
-          <div className="relative bg-slate-100 min-h-[260px] md:min-h-full">
+          <div className="relative bg-slate-100 min-h-[260px] md:min-h-full flex items-center justify-center">
             <img
-              src={product.image_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80'}
+              src={product.image_url || '/logo.png'}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-6'}`}
             />
             {discountPercent > 0 && (
               <span className="absolute top-4 left-4 bg-red-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-md">

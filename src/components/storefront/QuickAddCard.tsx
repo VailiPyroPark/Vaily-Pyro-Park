@@ -42,9 +42,9 @@ export const QuickAddCard: React.FC<QuickAddCardProps> = ({ product, onQuickView
         className="relative w-full aspect-[4/3] bg-slate-100 cursor-pointer overflow-hidden"
       >
         <img
-          src={product.image_url || '/images/sparkler_box.png'}
+          src={product.image_url || '/logo.png'}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-2.5'} group-hover:scale-105 transition-transform duration-300`}
           loading="lazy"
         />
 

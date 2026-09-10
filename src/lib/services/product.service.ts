@@ -54,11 +54,11 @@ export class ProductService {
         if (typeof reader.result === 'string') {
           resolve(reader.result);
         } else {
-          resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80');
+          resolve('/logo.png');
         }
       };
       reader.onerror = () => {
-        resolve('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80');
+        resolve('/logo.png');
       };
       reader.readAsDataURL(file);
     });
@@ -69,7 +69,7 @@ export class ProductService {
    * to avoid unwanted storage consumption when an image is replaced or removed.
    */
   static async deleteProductImage(imageUrl: string): Promise<boolean> {
-    if (!imageUrl || imageUrl.startsWith('data:') || imageUrl.includes('unsplash.com')) {
+    if (!imageUrl || imageUrl.startsWith('data:') || imageUrl === '/logo.png' || imageUrl.includes('logo.png')) {
       return false;
     }
 
@@ -293,7 +293,7 @@ export class ProductService {
       pack_size: productData.pack_size || '1 Box',
       mrp: productData.mrp || 0,
       selling_price: productData.selling_price || 0,
-      image_url: productData.image_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+      image_url: productData.image_url || null,
       is_active: productData.is_active !== undefined ? productData.is_active : true,
       is_featured: productData.is_featured || false,
       is_best_seller: productData.is_best_seller || false,

@@ -42,9 +42,9 @@ export const QuickAddListItem: React.FC<QuickAddListItemProps> = ({ product, onQ
         className="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-xl overflow-hidden cursor-pointer shrink-0 border border-slate-200/80 group"
       >
         <img
-          src={product.image_url || '/images/sparkler_box.png'}
+          src={product.image_url || '/logo.png'}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1.5'} group-hover:scale-105 transition-transform duration-200`}
           loading="lazy"
         />
         {discountPercent > 0 && (

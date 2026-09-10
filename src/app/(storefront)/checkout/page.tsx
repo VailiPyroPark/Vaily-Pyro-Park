@@ -462,12 +462,12 @@ export default function CheckoutPage() {
                     className="py-1.5 px-1 flex items-center justify-between text-xs gap-2.5 hover:bg-slate-50/80 rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-200/70 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="w-4 h-4 text-amber-600" />
-                        )}
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                        <img
+                          src={product.image_url || '/logo.png'}
+                          alt={product.name}
+                          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1'}`}
+                        />
                       </div>
                       <div className="min-w-0 flex-1 truncate">
                         <span className="font-bold text-slate-900 block truncate text-xs leading-tight">

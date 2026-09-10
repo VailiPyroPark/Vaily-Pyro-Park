@@ -245,9 +245,9 @@ export default function StorefrontPage() {
                     className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all flex flex-col sm:flex-row items-center gap-4"
                   >
                     <img
-                      src={combo.image_url || '/images/combo_box.png'}
+                      src={combo.image_url || '/logo.png'}
                       alt={combo.name}
-                      className="w-24 h-24 object-cover rounded-xl border border-slate-200 shrink-0"
+                      className={`w-24 h-24 rounded-xl border border-slate-200 shrink-0 ${combo.image_url ? 'object-cover' : 'object-contain p-2 bg-slate-50'}`}
                     />
                     <div className="flex-1 min-w-0 space-y-1.5 text-center sm:text-left">
                       <div className="flex items-center justify-center sm:justify-start gap-2">

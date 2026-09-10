@@ -182,7 +182,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         mrp: Number(mrp),
         selling_price: Number(sellingPrice),
         sound_level: soundLevel,
-        image_url: finalImageUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+        image_url: finalImageUrl || undefined,
         description: description.trim() || `Direct Sivakasi ${name} crackers with factory guarantee.`,
         is_active: true,
         is_featured: false,

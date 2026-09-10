@@ -442,11 +442,11 @@ export default function SingleOrderDetailsPage({ params }: PageProps) {
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-11 h-11 rounded-xl bg-white text-amber-700 border border-slate-200 flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden group-hover:border-amber-400 group-hover:scale-105 transition-all shadow-2xs">
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
-                      ) : (
-                        '🎆'
-                      )}
+                      <img
+                        src={item.image_url || '/logo.png'}
+                        alt={item.product_name}
+                        className={`w-full h-full ${item.image_url ? 'object-cover' : 'object-contain p-1'}`}
+                      />
                     </div>
                     <div className="min-w-0 space-y-0.5">
                       <p className="font-black text-slate-950 truncate text-xs sm:text-sm group-hover:text-amber-700 transition-colors">

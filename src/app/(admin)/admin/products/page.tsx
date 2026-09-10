@@ -341,16 +341,12 @@ export default function AdminProductsPage() {
                     <tr key={product.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-2.5 sm:p-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden font-bold">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              '🎆'
-                            )}
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden font-bold">
+                            <img
+                              src={product.image_url || '/logo.png'}
+                              alt={product.name}
+                              className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1'}`}
+                            />
                           </div>
                           <div className="min-w-0 flex flex-col items-start gap-0.5">
                             <span className="font-semibold text-slate-800 block text-xs sm:text-sm">

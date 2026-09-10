@@ -4,6 +4,7 @@ export type WhatsAppTemplateType =
   | 'ORDER_RECEIPT'
   | 'STATUS_UPDATE'
   | 'DISPATCH_TRACKING'
+  | 'ORDER_CANCELLED'
   | 'CUSTOM';
 
 export interface WhatsAppMessageOptions {
@@ -51,7 +52,7 @@ export class WhatsAppService {
     const formattedPhone = this.formatWhatsAppPhone(order.customer_mobile);
     const trackingUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/track-order?id=${order.id}`
-      : `https://vailypyropark.com/track-order?id=${order.id}`;
+      : `https://vailipyropark.com/track-order?id=${order.id}`;
 
     switch (templateType) {
       case 'ORDER_RECEIPT': {
@@ -59,7 +60,7 @@ export class WhatsAppService {
           ? order.items.map((i) => `• ${i.quantity}x ${i.product_name} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
           : '• Sivakasi Crackers Combo';
 
-        return `🎆 *ORDER CONFIRMATION - VAILY PYRO PARK* 🎆
+        return `🎆 *ORDER CONFIRMATION - VAILI PYRO PARK* 🎆
 
 Dear ${order.customer_name},
 Thank you for your order! Here are your order details:
@@ -100,7 +101,7 @@ Your Sivakasi fireworks order status has been updated to:
 Track your order anytime:
 ${trackingUrl}
 
-Thank you for choosing Vaily Pyro Park!`;
+Thank you for choosing Vaili Pyro Park!`;
       }
 
       case 'DISPATCH_TRACKING': {
@@ -122,11 +123,25 @@ Great news! Your Sivakasi crackers order has been dispatched!
 Track live status:
 ${trackingUrl}
 
-Happy & Safe Celebrations with Vaily Pyro Park! 🎆`;
+Happy & Safe Celebrations with Vaili Pyro Park! 🎆`;
+      }
+
+      case 'ORDER_CANCELLED': {
+        return `⚠️ *ORDER CANCELLATION NOTICE - ${order.order_number}* ⚠️
+
+Dear ${order.customer_name},
+Your order #${order.order_number} for ₹${order.grand_total.toLocaleString('en-IN')} has been cancelled.
+
+${options.customMessage ? `Note: ${options.customMessage}\n\n` : ''}If you have any questions or want to place a new order, feel free to contact us anytime!
+
+Track status:
+${trackingUrl}
+
+- Vaili Pyro Park, Sivakasi`;
       }
 
       case 'CUSTOM': {
-        return options.customMessage || `Hi ${order.customer_name}, regarding your order ${order.order_number} from Vaily Pyro Park:`;
+        return options.customMessage || `Hi ${order.customer_name}, regarding your order ${order.order_number} from Vaili Pyro Park:`;
       }
 
       default:
@@ -160,8 +175,19 @@ Happy & Safe Celebrations with Vaily Pyro Park! 🎆`;
       ? order.items.map((i) => `• ${i.quantity}x ${i.product_name} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
       : '';
 
-    const text = `🎆 *NEW CRACKER ORDER: ${order.order_number}* 🎆\n\n*Customer Details:*\n• Name: ${order.customer_name}\n• Phone: ${order.customer_mobile}\n• Shipping Address: ${order.shipping_address}, ${order.city}, ${order.state} - ${order.pincode}\n\n*Ordered Items:*\n${itemsList}\n\n*Financial Summary:*\n• Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\n• Delivery Fee: ${order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}\n• *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*\n\nThank you for choosing Vaily Pyro Park! Please confirm dispatch timeline.`;
+    const text = `🎆 *NEW CRACKER ORDER: ${order.order_number}* 🎆\n\n*Customer Details:*\n• Name: ${order.customer_name}\n• Phone: ${order.customer_mobile}\n• Shipping Address: ${order.shipping_address}, ${order.city}, ${order.state} - ${order.pincode}\n\n*Ordered Items:*\n${itemsList}\n\n*Financial Summary:*\n• Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\n• Delivery Fee: ${order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}\n• *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*\n\nThank you for choosing Vaili Pyro Park! Please confirm dispatch timeline.`;
 
+    const encoded = encodeURIComponent(text);
+    return `https://wa.me/${storePhoneNumber}?text=${encoded}`;
+  }
+
+  /**
+   * Customer support inquiry WhatsApp link (e.g. for dispatched order inquiries or general order lookup help)
+   */
+  public static generateSupportWhatsAppLink(order?: Order | null, message?: string, storePhoneNumber: string = '919952108746'): string {
+    const text = message || (order
+      ? `Hi Vaili Pyro Park team, I am inquiring regarding my order *#${order.order_number}* (Customer: ${order.customer_name}). Current status: ${order.status}. Could you please assist me?`
+      : `Hi Vaili Pyro Park team, I need help locating my fireworks order. Could you please assist me?`);
     const encoded = encodeURIComponent(text);
     return `https://wa.me/${storePhoneNumber}?text=${encoded}`;
   }

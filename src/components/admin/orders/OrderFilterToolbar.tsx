@@ -10,6 +10,8 @@ import {
   Filter,
   Download,
   X,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
 import { Order } from '@/types';
 
@@ -30,14 +32,21 @@ interface OrderFilterToolbarProps {
   onExportCSV?: () => void;
 }
 
-const STATUS_OPTIONS: { key: string; label: string }[] = [
-  { key: 'ALL', label: 'All' },
-  { key: 'PENDING', label: 'Pending' },
-  { key: 'CONFIRMED', label: 'Confirmed' },
-  { key: 'PACKING', label: 'Packing' },
-  { key: 'DISPATCHED', label: 'Dispatched' },
-  { key: 'DELIVERED', label: 'Delivered' },
-  { key: 'CANCELLED', label: 'Cancelled' },
+const STATUS_OPTIONS: { key: string; label: string; dotCls: string }[] = [
+  { key: 'ALL', label: 'All Orders', dotCls: 'bg-slate-400' },
+  { key: 'PENDING', label: 'Pending', dotCls: 'bg-amber-500' },
+  { key: 'CONFIRMED', label: 'Confirmed', dotCls: 'bg-blue-500' },
+  { key: 'PACKING', label: 'Packing', dotCls: 'bg-indigo-500' },
+  { key: 'DISPATCHED', label: 'Dispatched', dotCls: 'bg-purple-500' },
+  { key: 'DELIVERED', label: 'Delivered', dotCls: 'bg-emerald-500' },
+  { key: 'CANCELLED', label: 'Cancelled', dotCls: 'bg-rose-500' },
+];
+
+const DATE_OPTIONS = [
+  { key: 'ALL', label: 'All Dates' },
+  { key: 'Today', label: 'Today' },
+  { key: 'Last 7 Days', label: 'Last 7 Days' },
+  { key: 'This Month', label: 'This Month' },
 ];
 
 export function OrderFilterToolbar({
@@ -71,47 +80,54 @@ export function OrderFilterToolbar({
     return found ? `Status: ${found.label}` : `Status: ${key}`;
   };
 
+  const hasActiveFilters =
+    activeStatusTab !== 'ALL' || dateFilter !== 'ALL' || searchQuery.trim() !== '';
+
   return (
     <div className="font-sans">
       {/* 2-Row Compact Control Actions Box */}
-      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+      <div className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2 sm:space-y-2.5">
         {/* ROW 1: Full Width Search Bar */}
         <div className="relative w-full">
-          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
-            placeholder="Search Order #, Customer, Mobile..."
-            className={`w-full border text-slate-900 text-xs rounded-xl pl-8 sm:pl-9 pr-7 sm:pr-8 py-1.5 sm:py-2 focus:outline-none transition-all placeholder:text-slate-400 font-medium ${
+            placeholder="Search order #, customer name, mobile, city..."
+            className={`w-full text-slate-900 text-xs rounded-xl pl-9 pr-8 py-2 focus:outline-none transition-all placeholder:text-slate-400 font-medium ${
               isSearchFocused || searchQuery
-                ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-2xs'
-                : 'bg-slate-50 border-slate-200/80 hover:bg-slate-100/80'
+                ? 'bg-white border border-amber-500 ring-2 ring-amber-500/15 shadow-2xs'
+                : 'bg-slate-50/90 border border-slate-200/80 hover:bg-slate-100/70 hover:border-slate-300'
             }`}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 hover:text-slate-800 font-bold bg-slate-200/70 hover:bg-slate-200 rounded-full w-4 h-4 flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-slate-700 bg-slate-200/60 hover:bg-slate-200 rounded-full w-4 h-4 flex items-center justify-center transition-colors cursor-pointer"
+              title="Clear search"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* ROW 2: Compact Filter Dropdowns, Export CSV, and View Switcher */}
+        {/* ROW 2: Filter Dropdowns, Reset Pill, Export, and View Switcher */}
         <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap sm:flex-nowrap">
             {/* Order Status Dropdown Filter */}
             <div className="relative">
               <button
-                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
+                onClick={() => {
+                  setIsStatusDropdownOpen(!isStatusDropdownOpen);
+                  setIsDateDropdownOpen(false);
+                }}
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
                   activeStatusTab !== 'ALL'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
+                    ? 'bg-amber-50 text-amber-900 border-amber-300 font-bold ring-1 ring-amber-400/30'
+                    : 'bg-slate-50/90 hover:bg-slate-100 text-slate-700 border-slate-200/80'
                 }`}
               >
                 <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
@@ -119,8 +135,8 @@ export function OrderFilterToolbar({
                   {getStatusLabel(activeStatusTab)}
                 </span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${
-                    isStatusDropdownOpen ? 'rotate-180' : ''
+                  className={`w-3 h-3 text-slate-400 transition-transform duration-200 shrink-0 ${
+                    isStatusDropdownOpen ? 'rotate-180 text-slate-700' : ''
                   }`}
                 />
               </button>
@@ -131,29 +147,38 @@ export function OrderFilterToolbar({
                     className="fixed inset-0 z-40"
                     onClick={() => setIsStatusDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 max-h-64 overflow-y-auto">
-                    <div className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+                  <div className="absolute left-0 mt-1.5 w-52 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl shadow-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-150 max-h-64 overflow-y-auto">
+                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
                       Filter by Order Status
                     </div>
-                    {STATUS_OPTIONS.map((st) => (
-                      <button
-                        key={st.key}
-                        onClick={() => {
-                          setActiveStatusTab(st.key);
-                          setIsStatusDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center justify-between ${
-                          activeStatusTab === st.key
-                            ? 'bg-amber-500 text-slate-950 font-bold'
-                            : 'text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span>{st.label}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-semibold">
-                          {getStatusCount(st.key)}
-                        </span>
-                      </button>
-                    ))}
+                    {STATUS_OPTIONS.map((st) => {
+                      const isSelected = activeStatusTab === st.key;
+                      return (
+                        <button
+                          key={st.key}
+                          onClick={() => {
+                            setActiveStatusTab(st.key);
+                            setIsStatusDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-amber-50 text-amber-950 font-bold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${st.dotCls}`} />
+                            <span className="truncate">{st.label}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 font-mono text-slate-600 font-bold">
+                              {getStatusCount(st.key)}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-amber-700" />}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -162,11 +187,14 @@ export function OrderFilterToolbar({
             {/* Date Filter Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
+                onClick={() => {
+                  setIsDateDropdownOpen(!isDateDropdownOpen);
+                  setIsStatusDropdownOpen(false);
+                }}
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
                   dateFilter !== 'ALL'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
+                    ? 'bg-amber-50 text-amber-900 border-amber-300 font-bold ring-1 ring-amber-400/30'
+                    : 'bg-slate-50/90 hover:bg-slate-100 text-slate-700 border-slate-200/80'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
@@ -174,8 +202,8 @@ export function OrderFilterToolbar({
                   {dateFilter === 'ALL' ? 'Date: All' : dateFilter}
                 </span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${
-                    isDateDropdownOpen ? 'rotate-180' : ''
+                  className={`w-3 h-3 text-slate-400 transition-transform duration-200 shrink-0 ${
+                    isDateDropdownOpen ? 'rotate-180 text-slate-700' : ''
                   }`}
                 />
               </button>
@@ -186,27 +214,46 @@ export function OrderFilterToolbar({
                     className="fixed inset-0 z-40"
                     onClick={() => setIsDateDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 sm:left-auto right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95">
-                    {['ALL', 'Today', 'Last 7 Days', 'This Month'].map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => {
-                          setDateFilter(d);
-                          setIsDateDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                          dateFilter === d
-                            ? 'bg-amber-500 text-slate-950 font-bold'
-                            : 'text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {d === 'ALL' ? 'All Dates' : d}
-                      </button>
-                    ))}
+                  <div className="absolute left-0 sm:left-auto mt-1.5 w-44 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl shadow-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+                      Time Range
+                    </div>
+                    {DATE_OPTIONS.map((d) => {
+                      const isSelected = dateFilter === d.key;
+                      return (
+                        <button
+                          key={d.key}
+                          onClick={() => {
+                            setDateFilter(d.key);
+                            setIsDateDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-amber-50 text-amber-950 font-bold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{d.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-amber-700" />}
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}
             </div>
+
+            {/* 1-Click Reset Filters Pill */}
+            {hasActiveFilters && (
+              <button
+                onClick={onResetFilters}
+                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50/80 border border-transparent hover:border-rose-200/70 transition-all cursor-pointer"
+                title="Reset all filters"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -214,21 +261,22 @@ export function OrderFilterToolbar({
             {onExportCSV && (
               <button
                 onClick={onExportCSV}
-                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors cursor-pointer"
+                className="flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200/80 hover:border-slate-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer"
                 title="Export CSV"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden sm:inline text-[11px]">Export</span>
               </button>
             )}
 
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+            {/* Segmented View Mode Toggle */}
+            <div className="flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'cards'
-                    ? 'bg-amber-500 text-slate-950 shadow-2xs font-bold'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
                 title="Card View"
               >
@@ -236,10 +284,10 @@ export function OrderFilterToolbar({
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'table'
-                    ? 'bg-amber-500 text-slate-950 shadow-2xs font-bold'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
                 title="Table View"
               >
@@ -252,4 +300,3 @@ export function OrderFilterToolbar({
     </div>
   );
 }
-

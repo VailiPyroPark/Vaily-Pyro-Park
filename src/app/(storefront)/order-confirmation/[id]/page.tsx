@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, Package, ArrowRight, Truck, MapPin, Calendar, Clock, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, Package, ArrowRight, Truck, MapPin, Calendar, Clock, ShoppingBag, Ban, AlertCircle } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { OrderService } from '@/lib/services/order.service';
 import { WhatsAppService } from '@/lib/services/whatsapp.service';
 import { OrderTimeline } from '@/components/common/OrderTimeline';
+import { CancelOrderModal } from '@/components/common/CancelOrderModal';
 import { Order, OrderStatus } from '@/types';
 
 export default function OrderConfirmationPage() {
@@ -17,6 +18,8 @@ export default function OrderConfirmationPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     async function loadOrder() {
@@ -25,7 +28,7 @@ export default function OrderConfirmationPage() {
       setOrder(found);
       setLoading(false);
 
-      if (found) {
+      if (found && found.status !== 'CANCELLED') {
         // Trigger celebratory confetti burst
         confetti({
           particleCount: 80,
@@ -36,6 +39,13 @@ export default function OrderConfirmationPage() {
     }
     loadOrder();
   }, [orderId]);
+
+  const handleConfirmCancel = async (reason: string) => {
+    if (!order) return;
+    const cancelled = await OrderService.cancelOrder(order.id, reason, 'CUSTOMER');
+    setOrder(cancelled);
+    setSuccessMsg(`Order #${cancelled.order_number} has been cancelled successfully.`);
+  };
 
   if (loading) {
     return (
@@ -89,37 +99,66 @@ export default function OrderConfirmationPage() {
 
   const currentStepIndex = statusOrderIndexMap[order.status];
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 py-10 px-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Success Header Box */}
-        <div className="bg-gradient-to-br from-slate-950 to-amber-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-amber-500/30 text-center space-y-3">
-          <div className="w-16 h-16 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center mx-auto shadow-lg glow-gold">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
-          <span className="bg-amber-500/20 text-amber-300 font-extrabold text-xs px-3 py-1 rounded-full inline-block border border-amber-500/30 uppercase tracking-widest">
-            ORDER SUCCESSFULLY PLACED
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Order #{order.order_number}
-          </h1>
-          <p className="text-xs text-slate-300 max-w-md mx-auto">
-            Your order has been received! We will prepare and pack your items soon.
-          </p>
+  const isCancellable =
+    order && ['PENDING', 'CONFIRMED', 'PACKING', 'PACKED'].includes(order.status);
+  const isCancelled = order.status === 'CANCELLED';
+  const isDispatched = order.status === 'DISPATCHED';
 
-          {/* Primary Action Button: Send to WhatsApp */}
-          <div className="pt-2">
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-sm shadow-xl transition-all active:scale-98"
-            >
-              <WhatsAppIcon className="w-5 h-5 fill-white" />
-              <span className="text-white">SEND ORDER COPY TO WHATSAPP</span>
-            </a>
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 py-10 px-4 font-sans">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Header Box */}
+        {isCancelled ? (
+          <div className="bg-gradient-to-br from-slate-950 to-red-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-red-500/30 text-center space-y-3">
+            <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center mx-auto shadow-lg">
+              <Ban className="w-9 h-9" />
+            </div>
+            <span className="bg-red-500/20 text-red-300 font-extrabold text-xs px-3 py-1 rounded-full inline-block border border-red-500/30 uppercase tracking-widest">
+              ORDER CANCELLED
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Order #{order.order_number}
+            </h1>
+            <p className="text-xs text-slate-300 max-w-md mx-auto">
+              This order has been cancelled and is no longer being processed.
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-br from-slate-950 to-amber-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-amber-500/30 text-center space-y-3">
+            <div className="w-16 h-16 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center mx-auto shadow-lg glow-gold">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <span className="bg-amber-500/20 text-amber-300 font-extrabold text-xs px-3 py-1 rounded-full inline-block border border-amber-500/30 uppercase tracking-widest">
+              ORDER SUCCESSFULLY PLACED
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Order #{order.order_number}
+            </h1>
+            <p className="text-xs text-slate-300 max-w-md mx-auto">
+              Your order has been received! We will prepare and pack your items soon.
+            </p>
+
+            {/* Primary Action Button: Send to WhatsApp */}
+            <div className="pt-2">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-sm shadow-xl transition-all active:scale-98"
+              >
+                <WhatsAppIcon className="w-5 h-5 fill-white" />
+                <span className="text-white">SEND ORDER COPY TO WHATSAPP</span>
+              </a>
+            </div>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {/* Timeline Status Tracker */}
         <OrderTimeline
@@ -130,6 +169,27 @@ export default function OrderConfirmationPage() {
           createdAt={order.created_at}
           updatedAt={order.updated_at}
         />
+
+        {/* Dispatched Interception Notice */}
+        {isDispatched && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900">
+            <div>
+              <span className="font-black block text-blue-950">Dispatched & In Transit</span>
+              <p className="text-[11px] text-blue-700 mt-0.5">
+                Your order is already handed over to {order.courier_partner || 'the courier'}. To cancel or redirect, please contact Sivakasi customer support directly.
+              </p>
+            </div>
+            <a
+              href={WhatsAppService.generateSupportWhatsAppLink(order)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs rounded-xl flex items-center gap-1.5 shrink-0 shadow-xs"
+            >
+              <WhatsAppIcon className="w-3.5 h-3.5 fill-white" />
+              <span>Contact Support</span>
+            </a>
+          </div>
+        )}
 
         {/* Order Details & Summary Card */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
@@ -144,9 +204,18 @@ export default function OrderConfirmationPage() {
 
             <div>
               <span className="text-slate-500 block mb-1 font-semibold">Order Information:</span>
-              <p className="text-slate-700">Date: {new Date(order.created_at).toLocaleDateString()}</p>
-              <p className="text-slate-700">Status: <span className="font-extrabold text-amber-600">{order.status}</span></p>
-              <p className="text-slate-700">Store Hub: Vaily Pyro Park, Sivakasi</p>
+              <p className="text-slate-700">Date: {new Date(order.created_at).toLocaleDateString('en-IN')}</p>
+              <p className="text-slate-700">
+                Status:{' '}
+                <span
+                  className={`font-black uppercase ${
+                    order.status === 'CANCELLED' ? 'text-red-600' : 'text-amber-600'
+                  }`}
+                >
+                  {order.status}
+                </span>
+              </p>
+              <p className="text-slate-700">Store Hub: Vaili Pyro Park, Sivakasi</p>
             </div>
           </div>
 
@@ -158,9 +227,9 @@ export default function OrderConfirmationPage() {
                 <div key={item.product_id} className="p-3 bg-slate-50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 block">{item.product_name}</span>
-                    <span className="text-slate-500">{item.quantity} x ₹{item.unit_price.toLocaleString()}</span>
+                    <span className="text-slate-500">{item.quantity} x ₹{item.unit_price.toLocaleString('en-IN')}</span>
                   </div>
-                  <span className="font-extrabold text-slate-950">₹{item.total_price.toLocaleString()}</span>
+                  <span className="font-extrabold text-slate-950">₹{item.total_price.toLocaleString('en-IN')}</span>
                 </div>
               ))}
             </div>
@@ -170,43 +239,66 @@ export default function OrderConfirmationPage() {
           <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span className="font-bold text-slate-900">₹{order.subtotal.toLocaleString()}</span>
+              <span className="font-bold text-slate-900">₹{order.subtotal.toLocaleString('en-IN')}</span>
             </div>
             {order.discount_amount > 0 && (
               <div className="flex justify-between text-emerald-600 font-bold">
                 <span>Discounts Applied:</span>
-                <span>- ₹{order.discount_amount.toLocaleString()}</span>
+                <span>- ₹{order.discount_amount.toLocaleString('en-IN')}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>Delivery Fee:</span>
               <span className="font-bold text-slate-900">
-                {order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee}`}
+                {order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}
               </span>
             </div>
             <div className="flex justify-between text-base font-black text-slate-950 pt-2 border-t border-slate-200">
               <span>Grand Total:</span>
-              <span className="text-amber-600">₹{order.grand_total.toLocaleString()}</span>
+              <span className="text-amber-600">₹{order.grand_total.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="w-full sm:w-auto px-6 py-3 bg-slate-900 text-white font-bold rounded-xl text-xs text-center"
-          >
-            Back to Shop
-          </Link>
-          <Link
-            href="/track-order"
-            className="w-full sm:w-auto px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs text-center flex items-center justify-center gap-1.5"
-          >
-            <span>TRACK ALL ORDERS</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        {/* Navigation & Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link
+              href="/"
+              className="flex-1 sm:flex-initial px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs text-center transition-colors"
+            >
+              Back to Shop
+            </Link>
+            <Link
+              href="/track-order"
+              className="flex-1 sm:flex-initial px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs text-center flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span>TRACK ORDERS</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {isCancellable && (
+            <button
+              type="button"
+              onClick={() => setIsCancelModalOpen(true)}
+              className="w-full sm:w-auto px-5 py-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Ban className="w-4 h-4 text-red-600" />
+              <span>Cancel Order</span>
+            </button>
+          )}
         </div>
+
+        {/* Cancel Order Modal */}
+        {isCancelModalOpen && (
+          <CancelOrderModal
+            order={order}
+            isOpen={isCancelModalOpen}
+            onClose={() => setIsCancelModalOpen(false)}
+            onConfirmCancel={handleConfirmCancel}
+          />
+        )}
       </div>
     </div>
   );

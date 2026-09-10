@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Papa from 'papaparse';
+import { createClient } from '@/lib/supabase/client';
 import { OrderService } from '@/lib/services/order.service';
 import { Order, OrderStatus } from '@/types';
 
@@ -71,9 +72,50 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    // Auto-refresh every 30 seconds to catch new orders
-    const interval = setInterval(fetchOrders, 30_000);
-    return () => clearInterval(interval);
+
+    // 1. Cross-tab BroadcastChannel listener for immediate local tab updates
+    let broadcastChannel: BroadcastChannel | null = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      broadcastChannel = new BroadcastChannel('vpp_orders_channel');
+      broadcastChannel.onmessage = (event) => {
+        if (
+          event.data?.type === 'NEW_ORDER' ||
+          event.data?.type === 'ORDER_CANCELLED' ||
+          event.data?.type === 'ORDER_STATUS_CHANGED'
+        ) {
+          fetchOrders();
+          if (event.data?.type === 'ORDER_CANCELLED') {
+            addToast(
+              `Order #${event.data.orderNumber} was cancelled by ${event.data.cancelledBy || 'customer'}${
+                event.data.reason ? `: "${event.data.reason}"` : ''
+              }`,
+              'info'
+            );
+          }
+        }
+      };
+    }
+
+    // 2. Supabase Realtime subscription for cross-device/cross-network instant sync
+    const supabase = createClient();
+    const channel = supabase
+      .channel('admin-orders-page-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        fetchOrders();
+        if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'CANCELLED') {
+          addToast(`Order #${(payload.new as any).order_number} has been cancelled`, 'info');
+        }
+      })
+      .subscribe();
+
+    // 3. Fallback polling interval every 25 seconds
+    const interval = setInterval(fetchOrders, 25_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      if (broadcastChannel) broadcastChannel.close();
+      clearInterval(interval);
+    };
   }, [fetchOrders]);
 
   // Filtered Orders Computation
@@ -275,7 +317,11 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-3.5 sm:space-y-5">
       {/* Operations Executive KPI Metric Strip */}
-      <OrderMetrics orders={orders} />
+      <OrderMetrics
+        orders={orders}
+        activeStatusTab={activeStatusTab}
+        onSelectStatusTab={setActiveStatusTab}
+      />
 
       {/* Multi-Filter & Search Toolbar */}
       <OrderFilterToolbar

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ShoppingBag,
   MapPin,
@@ -46,9 +47,14 @@ export const Header: React.FC<HeaderProps> = ({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isTamil, setIsTamil] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const interval = setInterval(() => {
+      setIsTamil((prev) => !prev);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Deduplicate delivery zones by zone_name
@@ -79,15 +85,69 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Main Responsive Brand Header */}
         <div className="px-3 sm:px-4 py-2.5 max-w-7xl mx-auto flex items-center justify-between gap-2">
-          {/* Two-Tone Brand Title with Sivakasi Direct Pill Badge */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-base sm:text-lg tracking-tight font-heading">
-              <span className="font-extrabold text-slate-900">VAILY PYRO</span>{' '}
-              <span className="font-black text-amber-600">PARK</span>
-            </span>
-            <span className="bg-amber-100/90 text-amber-900 font-extrabold text-[9px] px-2 py-0.5 rounded-md border border-amber-300/80 uppercase tracking-widest hidden xs:inline-block sm:inline-block">
-              Sivakasi Direct
-            </span>
+          {/* Two-Tone Brand Title with Logo & Sivakasi Direct Pill Badge */}
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0 group">
+            <Image
+              src="/logo.png"
+              alt="Vaili Pyro Park Logo"
+              width={38}
+              height={38}
+              priority
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0 transition-transform group-hover:scale-105"
+            />
+            <div className="flex items-center gap-2">
+              <div className="grid grid-cols-1 grid-rows-1 items-center">
+                {/* English Text Layer */}
+                <div
+                  className={`col-start-1 row-start-1 flex items-center transition-all duration-700 ease-in-out ${
+                    isTamil
+                      ? 'opacity-0 -translate-y-2.5 pointer-events-none'
+                      : 'opacity-100 translate-y-0'
+                  }`}
+                >
+                  <span className="text-base sm:text-lg tracking-tight font-heading whitespace-nowrap">
+                    <span className="font-extrabold text-slate-900">VAILI PYRO</span>{' '}
+                    <span className="font-black text-amber-600">PARK</span>
+                  </span>
+                </div>
+
+                {/* Tamil Text Layer */}
+                <div
+                  className={`col-start-1 row-start-1 flex items-center transition-all duration-700 ease-in-out ${
+                    isTamil
+                      ? 'opacity-100 translate-y-0'
+                      : 'opacity-0 translate-y-2.5 pointer-events-none'
+                  }`}
+                >
+                  <span className="text-base sm:text-lg tracking-tight font-heading whitespace-nowrap">
+                    <span className="font-extrabold text-slate-900">வைலி பைரோ</span>{' '}
+                    <span className="font-black text-amber-600">பார்க்</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Bilingual Pill Badge */}
+              <div className="grid grid-cols-1 grid-rows-1 items-center hidden sm:grid">
+                <span
+                  className={`col-start-1 row-start-1 inline-flex items-center justify-center bg-amber-100/90 text-amber-900 font-extrabold text-[9px] px-2 py-0.5 rounded-md border border-amber-300/80 uppercase tracking-widest whitespace-nowrap transition-all duration-700 ease-in-out ${
+                    isTamil
+                      ? 'opacity-0 -translate-y-2 pointer-events-none'
+                      : 'opacity-100 translate-y-0'
+                  }`}
+                >
+                  Sivakasi Direct
+                </span>
+                <span
+                  className={`col-start-1 row-start-1 inline-flex items-center justify-center bg-amber-100/90 text-amber-900 font-extrabold text-[9px] px-2 py-0.5 rounded-md border border-amber-300/80 uppercase tracking-widest whitespace-nowrap transition-all duration-700 ease-in-out ${
+                    isTamil
+                      ? 'opacity-100 translate-y-0'
+                      : 'opacity-0 translate-y-2 pointer-events-none'
+                  }`}
+                >
+                  சிவகாசி நேரடி
+                </span>
+              </div>
+            </div>
           </Link>
 
           {/* Right Cart & Region & Mobile Menu Button */}
@@ -284,10 +344,44 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Drawer Header */}
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-base tracking-tight font-heading">
-                  <span className="font-extrabold text-slate-900">VAILY PYRO</span>{' '}
-                  <span className="font-black text-amber-600">PARK</span>
-                </span>
+                <div className="flex items-center gap-2">
+                  <Image
+                    src="/logo.png"
+                    alt="Vaili Pyro Park Logo"
+                    width={32}
+                    height={32}
+                    className="w-7 h-7 object-contain shrink-0"
+                  />
+                  <div className="grid grid-cols-1 grid-rows-1 items-center">
+                    {/* English Layer */}
+                    <div
+                      className={`col-start-1 row-start-1 flex items-center transition-all duration-700 ease-in-out ${
+                        isTamil
+                          ? 'opacity-0 -translate-y-2.5 pointer-events-none'
+                          : 'opacity-100 translate-y-0'
+                      }`}
+                    >
+                      <span className="text-base tracking-tight font-heading whitespace-nowrap">
+                        <span className="font-extrabold text-slate-900">VAILI PYRO</span>{' '}
+                        <span className="font-black text-amber-600">PARK</span>
+                      </span>
+                    </div>
+
+                    {/* Tamil Layer */}
+                    <div
+                      className={`col-start-1 row-start-1 flex items-center transition-all duration-700 ease-in-out ${
+                        isTamil
+                          ? 'opacity-100 translate-y-0'
+                          : 'opacity-0 translate-y-2.5 pointer-events-none'
+                      }`}
+                    >
+                      <span className="text-base tracking-tight font-heading whitespace-nowrap">
+                        <span className="font-extrabold text-slate-900">வைலி பைரோ</span>{' '}
+                        <span className="font-black text-amber-600">பார்க்</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
@@ -343,7 +437,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </a>
 
                   <a
-                    href="https://wa.me/919952108746?text=Hi%20Vaily%20Pyro%20Park,%20I%20have%20an%20enquiry%20regarding%20fireworks."
+                    href="https://wa.me/919952108746?text=Hi%20Vaili%20Pyro%20Park,%20I%20have%20an%20enquiry%20regarding%20fireworks."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
@@ -362,7 +456,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Footer Contact Info */}
             <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1 mt-4">
-              <span className="font-bold text-slate-800 block">Vaily Pyro Park</span>
+              <span className="font-bold text-slate-800 block">Vaili Pyro Park</span>
               <span>Direct Factory Outlet • Sivakasi, Tamil Nadu</span>
             </div>
           </div>

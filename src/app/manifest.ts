@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Vaily Pyro Park Admin Console',
+    name: 'Vaili Pyro Park Admin Console',
     short_name: 'VPP Admin',
     description: 'Sivakasi Fireworks Direct Factory Admin & Order Operations',
     start_url: '/admin',

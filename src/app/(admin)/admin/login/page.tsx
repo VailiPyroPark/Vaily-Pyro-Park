@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Shield, Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { AuthService } from '@/lib/services/auth.service';
 
@@ -58,12 +59,18 @@ export default function AdminLoginPage() {
           
           {/* Brand & Header */}
           <div className="text-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center mx-auto shadow-md shadow-amber-500/20 font-black text-2xl">
-              ⚡
+            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center mx-auto shadow-md">
+              <Image
+                src="/logo.png"
+                alt="Vaili Pyro Park Logo"
+                width={48}
+                height={48}
+                className="w-12 h-12 object-contain"
+              />
             </div>
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-amber-600 tracking-wider uppercase block">
-                Vaily Pyro Park
+                Vaili Pyro Park
               </span>
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Admin Sign In

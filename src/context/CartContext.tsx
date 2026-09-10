@@ -6,7 +6,7 @@ import { Product, CartItem, DeliveryZone } from '@/types';
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  updateQuantity: (productId: string, quantity: number, product?: Product) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   selectedZone: DeliveryZone;
@@ -90,14 +90,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, product?: Product) => {
     setCart((prevCart) => {
       if (quantity <= 0) {
         return prevCart.filter((item) => item.product.id !== productId);
       }
-      return prevCart.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      );
+      const existingIndex = prevCart.findIndex((item) => item.product.id === productId);
+      if (existingIndex > -1) {
+        const updated = [...prevCart];
+        updated[existingIndex] = { ...updated[existingIndex], quantity };
+        return updated;
+      }
+      if (product) {
+        return [...prevCart, { product, quantity }];
+      }
+      return prevCart;
     });
   };
 

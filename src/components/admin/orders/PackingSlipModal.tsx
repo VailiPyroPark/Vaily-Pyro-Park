@@ -131,7 +131,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
             <div>
               <span className="text-[10px] sm:text-xs print:text-[9.5pt] font-black text-amber-700 uppercase tracking-widest block">
-                VAILY PYRO PARK • SIVAKASI DIRECT WAREHOUSE
+                VAILI PYRO PARK • SIVAKASI DIRECT WAREHOUSE
               </span>
               <h1 className="text-lg sm:text-2xl print:text-[15pt] font-black text-slate-950 tracking-tight mt-0.5">
                 PACKING SLIP & TAX INVOICE
@@ -157,7 +157,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
               Dispatched From Warehouse
             </span>
             <span className="font-black text-slate-950 text-sm print:text-[11pt] block">
-              Vaily Pyro Park Main Depot
+              Vaili Pyro Park Main Depot
             </span>
             <span className="text-slate-700 text-xs print:text-[9.5pt] block leading-relaxed">
               142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123
@@ -301,7 +301,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
 
           {/* Terms & Dispatch Signature Line */}
           <div className="flex items-center justify-between text-xs print:text-[9pt] text-slate-500 font-mono pt-1">
-            <span>Thank you for buying from Vaily Pyro Park - Sivakasi Direct Warehouse!</span>
+            <span>Thank you for buying from Vaili Pyro Park - Sivakasi Direct Warehouse!</span>
             <span className="font-bold text-slate-900">Auth. Dispatch Signature: ________________</span>
           </div>
         </div>

@@ -231,13 +231,120 @@ export class OrderService {
       throw new Error(error?.message || `Failed to update order ${id}.`);
     }
 
-    return {
+    const updatedOrder: Order = {
       ...data,
       grand_total: Number(data.grand_total),
       subtotal: Number(data.subtotal),
       delivery_fee: Number(data.delivery_fee),
       discount_amount: Number(data.discount_amount),
     };
+
+    if (typeof window !== 'undefined') {
+      try {
+        if ('BroadcastChannel' in window) {
+          const bc = new BroadcastChannel('vpp_orders_channel');
+          bc.postMessage({
+            type: 'ORDER_STATUS_CHANGED',
+            orderId: id,
+            orderNumber: updatedOrder.order_number,
+            status,
+            order: updatedOrder,
+          });
+          bc.close();
+        }
+      } catch (e) {
+        console.error('Failed to broadcast order status update:', e);
+      }
+    }
+
+    return updatedOrder;
+  }
+
+  static async cancelOrder(
+    id: string,
+    reason?: string,
+    cancelledBy: 'CUSTOMER' | 'ADMIN' = 'CUSTOMER'
+  ): Promise<Order> {
+    const supabase = this.getSupabase();
+
+    // First retrieve current order to verify status and preserve notes
+    const current = await this.getOrderById(id);
+    if (!current) {
+      throw new Error(`Order ${id} not found.`);
+    }
+
+    if (current.status === 'CANCELLED') {
+      return current;
+    }
+
+    if (current.status === 'DELIVERED') {
+      throw new Error('Delivered orders cannot be cancelled.');
+    }
+
+    if (cancelledBy === 'CUSTOMER' && current.status === 'DISPATCHED') {
+      throw new Error(
+        'Your order has already been dispatched with the courier and cannot be cancelled online. Please contact support on WhatsApp to request an interception.'
+      );
+    }
+
+    const timestamp = new Date().toLocaleString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const notePrefix = cancelledBy === 'CUSTOMER' ? '[Customer Cancellation]' : '[Admin Cancellation]';
+    const reasonText = reason ? `${notePrefix} (${timestamp}): ${reason}` : `${notePrefix} (${timestamp}): Order cancelled.`;
+    const updatedNotes = current.admin_notes
+      ? `${current.admin_notes}\n${reasonText}`
+      : reasonText;
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'CANCELLED',
+        admin_notes: updatedNotes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', current.id)
+      .select('*, items:order_items(*)')
+      .single();
+
+    if (error || !data) {
+      console.error('OrderService.cancelOrder error:', error?.message);
+      throw new Error(error?.message || `Failed to cancel order ${id}.`);
+    }
+
+    const cancelledOrder: Order = {
+      ...data,
+      grand_total: Number(data.grand_total),
+      subtotal: Number(data.subtotal),
+      delivery_fee: Number(data.delivery_fee),
+      discount_amount: Number(data.discount_amount),
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('vpp_last_cancelled_order', JSON.stringify(cancelledOrder));
+        if ('BroadcastChannel' in window) {
+          const bc = new BroadcastChannel('vpp_orders_channel');
+          bc.postMessage({
+            type: 'ORDER_CANCELLED',
+            orderId: current.id,
+            orderNumber: cancelledOrder.order_number,
+            order: cancelledOrder,
+            cancelledBy,
+            reason: reason || 'No reason specified',
+          });
+          bc.close();
+        }
+      } catch (e) {
+        console.error('Failed to broadcast cancellation:', e);
+      }
+    }
+
+    return cancelledOrder;
   }
 
   static async updateOrderLogistics(

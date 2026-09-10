@@ -65,6 +65,41 @@ export class ProductService {
   }
 
   /**
+   * Delete product image file from Supabase Storage ('product-images' bucket)
+   * to avoid unwanted storage consumption when an image is replaced or removed.
+   */
+  static async deleteProductImage(imageUrl: string): Promise<boolean> {
+    if (!imageUrl || imageUrl.startsWith('data:') || imageUrl.includes('unsplash.com')) {
+      return false;
+    }
+
+    try {
+      const supabase = this.getSupabase();
+      let filePath = '';
+
+      if (imageUrl.includes('product-images/')) {
+        filePath = imageUrl.split('product-images/')[1];
+      } else if (imageUrl.includes('products/')) {
+        filePath = 'products/' + imageUrl.split('products/')[1];
+      }
+
+      if (filePath) {
+        filePath = filePath.split('?')[0];
+        const { error } = await supabase.storage.from('product-images').remove([filePath]);
+        if (error) {
+          console.warn('Supabase storage delete error:', error.message);
+          return false;
+        }
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      console.warn('Supabase storage delete exception:', err.message || err);
+      return false;
+    }
+  }
+
+  /**
    * Fetch all active categories from Supabase DB (Cached 30 min).
    */
   static async getCategories(): Promise<Category[]> {
@@ -370,6 +405,43 @@ export class ProductService {
     }
     localCache.clear('products_all');
     return true;
+  }
+
+  /**
+   * Recalculate and update selling_price for all products in DB based on global discount %.
+   * Formula: selling_price = Math.round(mrp * (1 - discountPercentage / 100))
+   */
+  static async applyGlobalDiscount(discountPercentage: number): Promise<{ updatedCount: number }> {
+    const supabase = this.getSupabase();
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, mrp');
+
+    if (error || !products) {
+      console.error('Failed to fetch products for global discount:', error);
+      throw error || new Error('Failed to fetch products from database.');
+    }
+
+    const factor = Math.max(0, (100 - discountPercentage) / 100);
+
+    // Process in chunks of 25 parallel updates for speed & stability
+    const chunkSize = 25;
+    for (let i = 0; i < products.length; i += chunkSize) {
+      const chunk = products.slice(i, i + chunkSize);
+      await Promise.all(
+        chunk.map((p) => {
+          const mrp = Number(p.mrp) || 0;
+          const selling_price = Math.max(0, Math.round(mrp * factor));
+          return supabase
+            .from('products')
+            .update({ selling_price, updated_at: new Date().toISOString() })
+            .eq('id', p.id);
+        })
+      );
+    }
+
+    localCache.clear('products_all');
+    return { updatedCount: products.length };
   }
 
   /**

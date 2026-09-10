@@ -71,7 +71,7 @@ export function PwaInstallPrompt() {
       setShowIosGuide(true);
     } else {
       // Chrome/Desktop fallback instructions
-      alert('To install VPP Admin as an app:\n1. Click your browser menu (3 dots or address bar icon).\n2. Select "Install Vaily Pyro Park Admin" or "Add to Home Screen".');
+      alert('To install VPP Admin as an app:\n1. Click your browser menu (3 dots or address bar icon).\n2. Select "Install Vaili Pyro Park Admin" or "Add to Home Screen".');
     }
   };
 
@@ -83,12 +83,11 @@ export function PwaInstallPrompt() {
     <>
       <button
         onClick={handleInstallClick}
-        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold shadow-2xs transition-all cursor-pointer border border-amber-400/60 active:scale-98 shrink-0"
+        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-2xs transition-all cursor-pointer border border-amber-400/70 active:scale-98 shrink-0"
         title="Install Admin App on Desktop or Mobile"
       >
-        <Smartphone className="w-3.5 h-3.5 text-slate-950" />
-        <span className="hidden sm:inline">Install App</span>
-        <Download className="w-3 h-3 text-slate-950/80" />
+        <Download className="w-3.5 h-3.5 text-slate-950" />
+        <span className="text-[11px] sm:text-xs font-bold">Install</span>
       </button>
 
       {/* iOS Installation Instructions Guide Modal */}
@@ -109,7 +108,7 @@ export function PwaInstallPrompt() {
             </div>
 
             <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              Install <strong>Vaily Pyro Park Admin</strong> directly to your home screen for 1-tap offline app access:
+              Install <strong>Vaili Pyro Park Admin</strong> directly to your home screen for 1-tap offline app access:
             </p>
 
             <ol className="space-y-3 text-xs font-semibold text-slate-800">

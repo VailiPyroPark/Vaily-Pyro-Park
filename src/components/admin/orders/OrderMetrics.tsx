@@ -1,100 +1,204 @@
 'use client';
 
-import React from 'react';
-import { Package, Clock, Truck, TrendingUp } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { ShoppingBag, Clock, Truck, IndianRupee, ArrowRight, Sparkles } from 'lucide-react';
 import { Order } from '@/types';
 
 interface OrderMetricsProps {
   orders: Order[];
+  activeStatusTab?: string;
+  onSelectStatusTab?: (status: string) => void;
 }
 
-export function OrderMetrics({ orders }: OrderMetricsProps) {
+export function OrderMetrics({
+  orders,
+  activeStatusTab = 'ALL',
+  onSelectStatusTab,
+}: OrderMetricsProps) {
   const totalOrdersCount = orders.length;
-  const pendingCount = orders.filter(
-    (o) => o.status === 'PENDING' || o.status === 'CONFIRMED' || o.status === 'PACKING'
-  ).length;
-  const dispatchedCount = orders.filter((o) => o.status === 'DISPATCHED').length;
-  const paidOrders = orders.filter((o) => o.is_paid);
-  const totalPaidRevenue = paidOrders.reduce((sum, o) => sum + o.grand_total, 0);
+
+  const validOrders = useMemo(
+    () => orders.filter((o) => o.status !== 'CANCELLED'),
+    [orders]
+  );
+
+  const totalBookedRevenue = useMemo(
+    () => validOrders.reduce((sum, o) => sum + (o.grand_total || 0), 0),
+    [validOrders]
+  );
+
+  const totalPaidRevenue = useMemo(
+    () => orders.filter((o) => o.is_paid).reduce((sum, o) => sum + (o.grand_total || 0), 0),
+    [orders]
+  );
+
+  const pendingCount = useMemo(
+    () =>
+      orders.filter(
+        (o) => o.status === 'PENDING' || o.status === 'CONFIRMED' || o.status === 'PACKING'
+      ).length,
+    [orders]
+  );
+
+  const dispatchedCount = useMemo(
+    () => orders.filter((o) => o.status === 'DISPATCHED').length,
+    [orders]
+  );
+
+  const totalItemsCount = useMemo(() => {
+    return orders.reduce((sum, o) => {
+      const items = o.items || [];
+      return sum + items.reduce((iSum, item) => iSum + (item.quantity || 1), 0);
+    }, 0);
+  }, [orders]);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 font-sans">
-      {/* Metric 1: Total Orders */}
-      <div className="w-full bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Total
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {totalOrdersCount}
-              </span>
-            </div>
-          </div>
-          <div className="w-7 h-7 sm:w-10 sm:h-10 bg-amber-50 text-amber-800 rounded-xl flex items-center justify-center border border-amber-200 shadow-2xs shrink-0">
-            <Package className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-700" />
+      {/* Metric 1: Total Bookings */}
+      <button
+        type="button"
+        onClick={() => onSelectStatusTab?.('ALL')}
+        className={`bg-white rounded-xl border p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between text-left group cursor-pointer ${
+          activeStatusTab === 'ALL'
+            ? 'ring-1.5 ring-blue-500/30 border-blue-300/80 bg-blue-50/10'
+            : 'border-slate-200/80'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-500">
+            Total Bookings
+          </span>
+          <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-300/40 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+            <ShoppingBag className="w-3.5 h-3.5" />
           </div>
         </div>
-      </div>
+        <div className="space-y-1">
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-sans">
+            {totalOrdersCount}
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[11px] text-slate-500 font-medium truncate">
+              {totalItemsCount > 0 ? `${totalItemsCount} items` : `${validOrders.length} active`}
+            </span>
+            <span className="text-[11px] text-blue-600 font-bold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5 shrink-0">
+              All <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
+        </div>
+      </button>
 
       {/* Metric 2: Pending Orders */}
-      <div className="w-full bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Pending
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base sm:text-2xl font-bold text-amber-600 tracking-tight">
-                {pendingCount}
-              </span>
-            </div>
-          </div>
-          <div className="w-7 h-7 sm:w-10 sm:h-10 bg-amber-50 text-amber-800 rounded-xl flex items-center justify-center border border-amber-200 shadow-2xs shrink-0">
-            <Clock className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-700" />
+      <button
+        type="button"
+        onClick={() => onSelectStatusTab?.('PENDING')}
+        className={`bg-white rounded-xl border p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between text-left group cursor-pointer ${
+          activeStatusTab === 'PENDING'
+            ? 'ring-1.5 ring-amber-500/30 border-amber-300/80 bg-amber-50/15'
+            : 'border-slate-200/80'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-500">
+            Pending Review
+          </span>
+          <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-300/40 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+            <Clock className="w-3.5 h-3.5" />
           </div>
         </div>
-      </div>
+        <div className="space-y-1">
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-sans flex items-center gap-1.5">
+            <span>{pendingCount}</span>
+            {pendingCount > 0 ? (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                Action
+              </span>
+            ) : (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Clear
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[11px] text-slate-500 font-medium">
+              {pendingCount > 0 ? 'To confirm' : 'Zero backlog'}
+            </span>
+            <span className="text-[11px] text-amber-800 font-bold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5 shrink-0">
+              Filter <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
+        </div>
+      </button>
 
       {/* Metric 3: Dispatched Orders */}
-      <div className="w-full bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Dispatched
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base sm:text-2xl font-bold text-blue-600 tracking-tight">
-                {dispatchedCount}
-              </span>
-            </div>
-          </div>
-          <div className="w-7 h-7 sm:w-10 sm:h-10 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center border border-blue-200/80 shadow-2xs shrink-0">
-            <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-700" />
+      <button
+        type="button"
+        onClick={() => onSelectStatusTab?.('DISPATCHED')}
+        className={`bg-white rounded-xl border p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between text-left group cursor-pointer ${
+          activeStatusTab === 'DISPATCHED'
+            ? 'ring-1.5 ring-indigo-500/30 border-indigo-300/80 bg-indigo-50/15'
+            : 'border-slate-200/80'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-500">
+            Dispatched
+          </span>
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-300/40 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+            <Truck className="w-3.5 h-3.5" />
           </div>
         </div>
-      </div>
+        <div className="space-y-1">
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-sans flex items-center gap-1.5">
+            <span>{dispatchedCount}</span>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+              Transit
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[11px] text-slate-500 font-medium">
+              {dispatchedCount > 0 ? `${dispatchedCount} on road` : '0 in transit'}
+            </span>
+            <span className="text-[11px] text-indigo-700 font-bold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5 shrink-0">
+              Filter <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
+        </div>
+      </button>
 
-      {/* Metric 4: Revenue */}
-      <div className="w-full bg-white p-2.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Revenue
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base sm:text-2xl font-bold text-emerald-600 tracking-tight font-mono">
-                ₹{totalPaidRevenue.toLocaleString()}
-              </span>
-            </div>
-          </div>
-          <div className="w-7 h-7 sm:w-10 sm:h-10 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center border border-emerald-200/80 shadow-2xs shrink-0">
-            <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-emerald-600" />
+      {/* Metric 4: Net Revenue (Fixed ₹0 calculation!) */}
+      <button
+        type="button"
+        onClick={() => onSelectStatusTab?.('ALL')}
+        className={`bg-white rounded-xl border p-3 sm:p-3.5 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between text-left group cursor-pointer ${
+          activeStatusTab === 'ALL'
+            ? 'ring-1.5 ring-emerald-500/20 border-emerald-300/70'
+            : 'border-slate-200/80'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-500">
+            Net Revenue
+          </span>
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-300/40 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+            <IndianRupee className="w-3.5 h-3.5" />
           </div>
         </div>
-      </div>
+        <div className="space-y-1">
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-sans">
+            ₹{totalBookedRevenue.toLocaleString('en-IN')}
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded">
+              Excl. Cancelled
+            </span>
+            <span className="text-[11px] text-slate-500 font-medium">
+              {totalPaidRevenue > 0
+                ? `₹${totalPaidRevenue.toLocaleString('en-IN')} paid`
+                : `${validOrders.length} ord.`}
+            </span>
+          </div>
+        </div>
+      </button>
     </div>
   );
 }
-

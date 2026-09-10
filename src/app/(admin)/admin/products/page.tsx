@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Upload, Edit, Search } from 'lucide-react';
+import Papa from 'papaparse';
+import { Plus, Upload, Edit, Search, Download } from 'lucide-react';
 import { Product, Category } from '@/types';
 import { ProductService } from '@/lib/services/product.service';
 import { BulkCSVImportModal } from '@/components/admin/BulkCSVImportModal';
@@ -35,6 +36,33 @@ export default function AdminProductsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleExportProductsCsv = () => {
+    if (products.length === 0) return;
+
+    const exportRows = products.map((p) => ({
+      name: p.name,
+      sku: p.sku,
+      pack_size: p.pack_size || '1 Box',
+      mrp: p.mrp,
+      selling_price: p.selling_price,
+      sound_level: p.sound_level || 'Medium',
+      stock: p.stock ?? 100,
+      category: p.category?.name || '',
+      description: p.description || '',
+    }));
+
+    const csvContent = Papa.unparse(exportRows);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute('download', `vaily_pyro_products_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Filtered products computation
   const filteredProducts = useMemo(() => {
@@ -119,6 +147,14 @@ export default function AdminProductsPage() {
             >
               <Upload className="w-4 h-4 text-amber-400" />
               <span className="hidden sm:inline">Bulk CSV</span>
+            </button>
+            <button
+              onClick={handleExportProductsCsv}
+              className="p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1 border border-slate-200 shadow-2xs transition-all cursor-pointer active:scale-98"
+              title="Download Product Data as CSV"
+            >
+              <Download className="w-4 h-4 text-slate-600" />
+              <span className="hidden sm:inline">Export CSV</span>
             </button>
           </div>
         </div>

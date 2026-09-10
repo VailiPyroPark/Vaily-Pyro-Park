@@ -107,7 +107,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               <span className={isMinOrderReached ? 'text-emerald-800' : 'text-amber-900'}>
                 {isMinOrderReached
                   ? '✓ Minimum order requirement met!'
-                  : `Add ₹${remainingForMinOrder.toLocaleString()} more to checkout`}
+                  : `Add ₹${remainingForMinOrder.toLocaleString()} more to order`}
               </span>
               <span className="text-slate-600 font-bold">
                 ₹{subtotal.toLocaleString()} / ₹{minOrderThreshold.toLocaleString()}
@@ -232,7 +232,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 text-xs transition-all active:scale-98"
                 >
-                  <span>PROCEED TO CHECKOUT</span>
+                  <span>PROCEED TO ORDER</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               ) : (
@@ -241,7 +241,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className="w-full py-3 bg-amber-100 hover:bg-amber-200/80 text-amber-950 font-bold rounded-2xl flex items-center justify-center gap-1.5 text-xs border border-amber-300 transition-colors cursor-pointer"
                 >
-                  <span>ADD ₹{remainingForMinOrder.toLocaleString()} MORE TO CHECKOUT</span>
+                  <span>ADD ₹{remainingForMinOrder.toLocaleString()} MORE TO ORDER</span>
                 </button>
               )}
             </div>

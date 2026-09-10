@@ -40,6 +40,7 @@ interface AdminNotificationContextType {
   clearAllNotifications: () => void;
   testSoundAlert: () => void;
   notifyNewOrder: (order: Partial<Order>) => void;
+  notifyOrderCancelled: (order: Partial<Order>, reason?: string, cancelledBy?: string) => void;
   refreshNotifications: () => Promise<void>;
 }
 
@@ -111,6 +112,60 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
       setTimeout(() => {
         dismissToast(toastId);
       }, 6000);
+    },
+    [dismissToast]
+  );
+
+  const notifyOrderCancelled = useCallback(
+    (order: Partial<Order>, reason?: string, cancelledBy?: string) => {
+      if (!order.order_number) return;
+
+      const grandTotalNum = Number(order.grand_total) || 0;
+      const orderObj: Partial<Order> = {
+        ...order,
+        grand_total: grandTotalNum,
+        status: 'CANCELLED',
+      };
+
+      const newItem: AdminNotificationItem = {
+        id: `notif-cancel-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        orderNumber: order.order_number,
+        customerName: order.customer_name || 'Customer',
+        grandTotal: grandTotalNum,
+        city: order.city || 'Tamil Nadu',
+        timestamp: new Date().toISOString(),
+        read: false,
+        order: orderObj,
+      };
+
+      setNotifications((prev) => {
+        const updated = [newItem, ...prev.filter((n) => n.orderNumber !== order.order_number)];
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(updated.slice(0, 40)));
+          } catch {}
+        }
+        return updated;
+      });
+
+      // 1. Play alert sound
+      AudioService.playNewOrderChime();
+
+      // 2. In-App Visual Toast
+      const toastId = `toast-cancel-${Date.now()}`;
+      const newToast: AdminNotificationToast = {
+        id: toastId,
+        title: '⚠️ ORDER CANCELLED!',
+        message: `Order #${order.order_number} cancelled by ${cancelledBy || 'Customer'}${reason ? `: "${reason}"` : ''}`,
+        orderNumber: order.order_number,
+        grandTotal: grandTotalNum,
+        order: orderObj,
+      };
+
+      setToasts((prev) => [...prev, newToast]);
+      setTimeout(() => {
+        dismissToast(toastId);
+      }, 7000);
     },
     [dismissToast]
   );
@@ -239,7 +294,7 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
 
     const supabase = createClient();
 
-    // 1. Realtime DB listener for new order inserts
+    // 1. Realtime DB listener for order inserts and updates
     const channel = supabase
       .channel('admin-orders-realtime')
       .on(
@@ -252,15 +307,33 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
           }
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders' },
+        (payload) => {
+          if (payload.new) {
+            const updated = payload.new as Partial<Order>;
+            if (updated.status === 'CANCELLED') {
+              notifyOrderCancelled(updated, updated.admin_notes, 'Customer');
+            }
+            syncOrdersWithNotifications(false);
+          }
+        }
+      )
       .subscribe();
 
-    // 2. BroadcastChannel for cross-tab instant notification when checkout completes
+    // 2. BroadcastChannel for cross-tab instant notification when checkout completes or cancellation occurs
     let broadcastChannel: BroadcastChannel | null = null;
     if ('BroadcastChannel' in window) {
       broadcastChannel = new BroadcastChannel('vpp_orders_channel');
       broadcastChannel.onmessage = (event) => {
         if (event.data?.type === 'NEW_ORDER' && event.data?.order) {
           notifyNewOrder(event.data.order);
+        } else if (event.data?.type === 'ORDER_CANCELLED' && event.data?.order) {
+          notifyOrderCancelled(event.data.order, event.data.reason, event.data.cancelledBy);
+          syncOrdersWithNotifications(false);
+        } else if (event.data?.type === 'ORDER_STATUS_CHANGED') {
+          syncOrdersWithNotifications(false);
         }
       };
     }
@@ -271,6 +344,11 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
         try {
           const parsed = JSON.parse(e.newValue);
           notifyNewOrder(parsed);
+        } catch {}
+      } else if (e.key === 'vpp_last_cancelled_order' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          notifyOrderCancelled(parsed, parsed.admin_notes, 'Customer');
         } catch {}
       }
     };
@@ -287,7 +365,7 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
-  }, [notifyNewOrder, syncOrdersWithNotifications]);
+  }, [notifyNewOrder, notifyOrderCancelled, syncOrdersWithNotifications]);
 
   const refreshNotifications = useCallback(async () => {
     await syncOrdersWithNotifications(false);
@@ -351,6 +429,7 @@ export function AdminNotificationProvider({ children }: { children: React.ReactN
         clearAllNotifications,
         testSoundAlert,
         notifyNewOrder,
+        notifyOrderCancelled,
         refreshNotifications,
       }}
     >

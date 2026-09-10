@@ -220,8 +220,6 @@ export function OrdersCardView({
               const statusConfig = getStatusBadgeStyle(order.status);
               const nextBtnConfig = nextStatus ? getNextStatusButtonConfig(nextStatus) : null;
               const totalUnitsCount = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-              const topItems = order.items?.slice(0, 2) || [];
-              const extraItemsCount = (order.items?.length || 0) - topItems.length;
 
               const orderTimeStr = new Date(order.created_at).toLocaleTimeString('en-IN', {
                 hour: '2-digit',
@@ -233,7 +231,7 @@ export function OrdersCardView({
                 <div
                   key={order.id}
                   onClick={() => handleCardClick(order)}
-                  className={`bg-white rounded-3xl border transition-all duration-200 p-4 flex flex-col justify-between space-y-3.5 relative overflow-hidden group cursor-pointer ${
+                  className={`bg-white rounded-2xl border transition-all duration-200 p-3.5 sm:p-4 flex flex-col justify-between space-y-2.5 relative overflow-hidden group cursor-pointer ${
                     isSelected
                       ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
                       : 'border-slate-200/90 shadow-xs hover:shadow-md hover:border-slate-300'
@@ -342,46 +340,6 @@ export function OrdersCardView({
                       </div>
                     </div>
 
-                    {/* Information-Dense Products Preview Breakdown */}
-                    {order.items && order.items.length > 0 && (
-                      <div className="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-100 space-y-1.5">
-                        <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                          <span>Items ({totalUnitsCount} Units)</span>
-                          <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80 font-black">
-                            Sivakasi Pack
-                          </span>
-                        </div>
-
-                        <div className="space-y-1 text-xs">
-                          {topItems.map((item) => (
-                            <div
-                              key={item.product_id}
-                              className="flex items-center justify-between gap-2 text-slate-800"
-                            >
-                              <div className="flex items-center gap-1.5 truncate min-w-0">
-                                <span className="bg-amber-100 text-amber-900 font-black text-[10px] px-1.5 py-0.2 rounded-md shrink-0">
-                                  {item.quantity}x
-                                </span>
-                                <span className="font-medium text-slate-700 truncate text-[11px]">
-                                  {item.product_name}
-                                </span>
-                              </div>
-                              <span className="font-extrabold text-slate-900 font-mono text-[11px] shrink-0">
-                                ₹{item.total_price.toLocaleString()}
-                              </span>
-                            </div>
-                          ))}
-
-                          {extraItemsCount > 0 && (
-                            <div className="flex items-center justify-between pt-0.5 text-[10px] text-amber-700 font-black">
-                              <span>+ {extraItemsCount} more products...</span>
-                              <ChevronRight className="w-3 h-3 text-amber-600" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Courier Partner & LR Tracking Badge */}
                     {order.courier_partner && (
                       <div className="flex items-center justify-between text-xs bg-blue-50/80 p-2 rounded-xl border border-blue-200/60">
@@ -403,9 +361,16 @@ export function OrdersCardView({
                         <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">
                           Grand Total
                         </span>
-                        <span className="text-lg font-black text-slate-950 font-mono leading-tight block">
-                          ₹{order.grand_total.toLocaleString()}
-                        </span>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-base sm:text-lg font-black text-slate-950 font-mono leading-tight">
+                            ₹{order.grand_total.toLocaleString('en-IN')}
+                          </span>
+                          {totalUnitsCount > 0 && (
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              • {totalUnitsCount} units
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-1.5">
@@ -414,7 +379,7 @@ export function OrdersCardView({
                             e.stopPropagation();
                             onPrintSlip(order);
                           }}
-                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all border border-slate-200 cursor-pointer text-xs font-bold flex items-center gap-1.5"
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all border border-slate-200 cursor-pointer text-xs font-bold flex items-center gap-1.5"
                           title="Print Packing Slip / Tax Invoice"
                         >
                           <Printer className="w-3.5 h-3.5 text-slate-700" />

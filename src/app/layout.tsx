@@ -18,7 +18,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'Vaily Pyro Park | Online Sivakasi Crackers Shopping 2026',
+  title: 'Vaili Pyro Park | Online Sivakasi Crackers Shopping 2026',
   description:
     'Purchase genuine Sivakasi Diwali crackers, sparklers, flower pots, rockets, and aerial shots at direct factory prices with instant quick-add ordering.',
   keywords: [

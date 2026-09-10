@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -14,6 +15,8 @@ import {
   Plus,
   ArrowLeft,
   X,
+  Zap,
+  Percent,
 } from 'lucide-react';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
 
@@ -32,6 +35,7 @@ export function AdminSidebar({ userEmail, onSignOutClick, onNavClick }: AdminSid
     { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/categories', label: 'Categories', icon: SlidersHorizontal },
+    { href: '/admin/discount', label: 'Discount', icon: Percent },
     { href: '/admin/notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
     { href: '/admin/profile', label: 'Profile', icon: User },
   ];
@@ -42,12 +46,16 @@ export function AdminSidebar({ userEmail, onSignOutClick, onNavClick }: AdminSid
         {/* Brand Header */}
         <div className="pb-4 border-b border-slate-100 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-base shadow-2xs">
-              ⚡
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Vaili Pyro Park Logo"
+              width={36}
+              height={36}
+              className="w-9 h-9 object-contain shrink-0"
+            />
             <div>
               <span className="font-bold text-sm text-slate-900 tracking-tight block">
-                Vaily Pyro Park
+                Vaili Pyro Park
               </span>
               <span className="text-[10px] text-amber-600 font-semibold uppercase tracking-wider block -mt-0.5">
                 Admin Panel

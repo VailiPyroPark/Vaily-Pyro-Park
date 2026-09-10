@@ -7,15 +7,17 @@ export interface StoreSettings {
   whatsapp_number: string;
   gstin: string;
   announcement_banner: string;
+  discount_percentage: number;
 }
 
 const DEFAULT_SETTINGS: StoreSettings = {
-  store_name: 'Vaily Pyro Park',
+  store_name: 'Vaili Pyro Park',
   tagline: 'Sivakasi Direct Fireworks Outlet',
   helpline_mobile: '+91 98401 23456',
   whatsapp_number: '919840123456',
   gstin: '33AAACV1234A1Z5',
   announcement_banner: '⚡ DIWALI PRE-BOOKING OPEN: Get up to 75% OFF Factory Direct Rates!',
+  discount_percentage: 75,
 };
 
 export class SettingsService {
@@ -44,6 +46,10 @@ export class SettingsService {
         settingsMap[row.key] = row.value;
       });
 
+      const parsedDiscount = settingsMap['discount_percentage']
+        ? Number(settingsMap['discount_percentage'])
+        : DEFAULT_SETTINGS.discount_percentage;
+
       return {
         store_name: settingsMap['store_name'] ?? DEFAULT_SETTINGS.store_name,
         tagline: settingsMap['tagline'] ?? DEFAULT_SETTINGS.tagline,
@@ -51,11 +57,27 @@ export class SettingsService {
         whatsapp_number: settingsMap['whatsapp_number'] ?? DEFAULT_SETTINGS.whatsapp_number,
         gstin: settingsMap['gstin'] ?? DEFAULT_SETTINGS.gstin,
         announcement_banner: settingsMap['announcement_banner'] ?? DEFAULT_SETTINGS.announcement_banner,
+        discount_percentage: !isNaN(parsedDiscount) && parsedDiscount >= 0 ? parsedDiscount : DEFAULT_SETTINGS.discount_percentage,
       };
     } catch (e) {
       console.warn('Settings fetch exception, using defaults:', e);
       return { ...DEFAULT_SETTINGS };
     }
+  }
+
+  /**
+   * Get active global discount percentage directly.
+   */
+  static async getDiscountPercentage(): Promise<number> {
+    const settings = await this.getAllSettings();
+    return settings.discount_percentage ?? 75;
+  }
+
+  /**
+   * Save active global discount percentage directly.
+   */
+  static async updateDiscountPercentage(percent: number): Promise<boolean> {
+    return this.saveSetting('discount_percentage', String(percent));
   }
 
   /**

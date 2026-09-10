@@ -157,7 +157,15 @@ export function OrderDetailsDrawer({
               <h2 className="font-black text-base sm:text-xl text-slate-950 tracking-tight truncate">
                 {order.order_number}
               </h2>
-              <span className="text-[10px] bg-emerald-50 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200/80 uppercase tracking-wider">
+              <span
+                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+                  order.status === 'CANCELLED'
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : order.status === 'DELIVERED'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
+                    : 'bg-amber-50 text-amber-800 border-amber-200/80'
+                }`}
+              >
                 {order.status}
               </span>
             </div>
@@ -520,6 +528,22 @@ export function OrderDetailsDrawer({
               className="flex-1 py-2.5 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
             >
               Done / Close
+            </button>
+          )}
+
+          {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+            <button
+              onClick={() =>
+                onRequestStatusChange(
+                  order.id,
+                  order.order_number,
+                  order.status,
+                  'CANCELLED'
+                )
+              }
+              className="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl border border-red-200 transition-colors cursor-pointer"
+            >
+              Cancel Order
             </button>
           )}
         </div>

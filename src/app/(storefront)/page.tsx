@@ -14,28 +14,6 @@ import { Product, Category, Combo, DeliveryZone } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { ProductService } from '@/lib/services/product.service';
 
-const CATEGORY_EMOJIS: Record<string, string> = {
-  'sound crackers': '🔊',
-  'flower pots': '🌸',
-  'ground chakkaras': '💫',
-  'bijili crackers': '⚡',
-  'lar': '💥',
-  'bomb': '💣',
-  'rocket': '🚀',
-  'pencil': '✏️',
-  'kutties special': '🎁',
-  'match box': '📦',
-  'colorful nights': '✨',
-  'new arrivals (2025)': '⭐',
-  'amazing shots': '🎆',
-  'fancy shots': '🌟',
-  'sparklers': '✨',
-};
-
-function getCategoryEmoji(name: string): string {
-  return CATEGORY_EMOJIS[name.toLowerCase()] || '🎆';
-}
-
 export default function StorefrontPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -99,7 +77,14 @@ export default function StorefrontPage() {
     }
   }, [selectedCategory, searchQuery, viewMode, isLoaded]);
 
-  const { itemCount, subtotal, addToCart, remainingForMinOrder, isMinOrderReached } = useCart();
+  const { cart, itemCount, subtotal, addToCart, remainingForMinOrder, isMinOrderReached } = useCart();
+
+  const totalSavings = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      const diff = Math.max(0, item.product.mrp - item.product.selling_price);
+      return acc + diff * item.quantity;
+    }, 0);
+  }, [cart]);
 
   // Filtered products list
   const filteredProducts = useMemo(() => {
@@ -180,6 +165,8 @@ export default function StorefrontPage() {
         />
 
         <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
+
+
           {/* MAIN PRODUCT CATALOGUE SECTION WITH CATEGORY CLASSIFICATION HEADERS */}
           <section className="space-y-4">
             {/* Active Search / Category Filter Badge (Only shown when filtered) */}
@@ -306,27 +293,32 @@ export default function StorefrontPage() {
 
       {/* Sticky Bottom Order Summary Floating Bar (Glassmorphic Premium Design) */}
       {itemCount > 0 && (
-        <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-lg z-40 animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-slate-950/92 backdrop-blur-xl border border-amber-500/40 p-3 sm:p-3.5 rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.6),0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-between gap-3 text-white">
+        <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md md:max-w-lg z-40 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-slate-950/95 backdrop-blur-xl border border-amber-500/50 p-3 sm:p-3.5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_30px_rgba(245,158,11,0.3)] flex items-center justify-between gap-3 text-white font-sans">
             {/* Left Info Column */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] sm:text-[11px] font-bold border border-amber-500/30 shrink-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-400 text-[10px] sm:text-[11px] font-black border border-amber-500/40 shrink-0">
                   <ShoppingBag className="w-3 h-3 text-amber-400" />
-                  <span>{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
+                  <span>{itemCount} {itemCount === 1 ? 'Box' : 'Boxes'}</span>
                 </span>
-                {!isMinOrderReached && remainingForMinOrder > 0 && (
-                  <span className="text-[10px] text-amber-300/80 font-medium truncate hidden xs:inline">
-                    • Add ₹{remainingForMinOrder.toLocaleString()} more
+                {totalSavings > 0 && (
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    Saved ₹{totalSavings.toLocaleString('en-IN')}
                   </span>
                 )}
               </div>
 
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-xs text-slate-400 font-medium">Total:</span>
-                <span className="text-base sm:text-xl font-bold text-white tracking-tight">
-                  ₹{subtotal.toLocaleString()}
+                <span className="text-xs text-slate-400 font-medium">Subtotal:</span>
+                <span className="text-base sm:text-xl font-black text-white font-mono tracking-tight">
+                  ₹{subtotal.toLocaleString('en-IN')}
                 </span>
+                {!isMinOrderReached && remainingForMinOrder > 0 && (
+                  <span className="text-[10px] text-amber-300 font-medium truncate ml-1 hidden xs:inline">
+                    (Add ₹{remainingForMinOrder.toLocaleString('en-IN')} for min order)
+                  </span>
+                )}
               </div>
             </div>
 
@@ -335,17 +327,17 @@ export default function StorefrontPage() {
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
-                className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-2xl transition-all cursor-pointer backdrop-blur-md active:scale-95 border border-white/10"
+                className="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-full transition-all cursor-pointer backdrop-blur-md active:scale-95 border border-white/15"
               >
-                View Cart
+                Cart
               </button>
 
               <Link
                 href="/checkout"
-                className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-2xl shadow-lg shadow-amber-500/25 transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm rounded-full shadow-lg shadow-amber-500/30 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer glow-gold"
               >
-                <span>Checkout</span>
-                <ChevronRight className="w-4 h-4" />
+                <span>Order</span>
+                <ChevronRight className="w-4 h-4 text-slate-950 stroke-[3]" />
               </Link>
             </div>
           </div>

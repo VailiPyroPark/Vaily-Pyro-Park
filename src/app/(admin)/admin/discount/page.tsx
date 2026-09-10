@@ -14,8 +14,8 @@ import { ProductService } from '@/lib/services/product.service';
 
 export default function AdminDiscountPage() {
   const [loading, setLoading] = useState(true);
-  const [discountPercent, setDiscountPercent] = useState<number>(75);
-  const [savedPercent, setSavedPercent] = useState<number>(75);
+  const [discountPercent, setDiscountPercent] = useState<number>(80);
+  const [savedPercent, setSavedPercent] = useState<number>(80);
   const [productsCount, setProductsCount] = useState<number>(0);
 
   // Sample MRP for live preview
@@ -35,7 +35,7 @@ export default function AdminDiscountPage() {
           SettingsService.getAllSettings(),
           ProductService.getAllProducts(),
         ]);
-        const current = settings.discount_percentage ?? 75;
+        const current = settings.discount_percentage ?? 80;
         setDiscountPercent(current);
         setSavedPercent(current);
         setProductsCount(products.length);

@@ -16,8 +16,8 @@ const DEFAULT_SETTINGS: StoreSettings = {
   helpline_mobile: '+91 98401 23456',
   whatsapp_number: '919840123456',
   gstin: '33AAACV1234A1Z5',
-  announcement_banner: '⚡ DIWALI PRE-BOOKING OPEN: Get up to 75% OFF Factory Direct Rates!',
-  discount_percentage: 75,
+  announcement_banner: '⚡ DIWALI PRE-BOOKING OPEN: Get up to 80% OFF Factory Direct Rates!',
+  discount_percentage: 80,
 };
 
 export class SettingsService {
@@ -70,7 +70,7 @@ export class SettingsService {
    */
   static async getDiscountPercentage(): Promise<number> {
     const settings = await this.getAllSettings();
-    return settings.discount_percentage ?? 75;
+    return settings.discount_percentage ?? 80;
   }
 
   /**

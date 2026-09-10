@@ -37,7 +37,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [isBestSeller, setIsBestSeller] = useState(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [discountPercent, setDiscountPercent] = useState<number>(75);
+  const [discountPercent, setDiscountPercent] = useState<number>(80);
   const [isManualPriceOverride, setIsManualPriceOverride] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');

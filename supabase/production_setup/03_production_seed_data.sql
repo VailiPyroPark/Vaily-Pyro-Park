@@ -11,7 +11,7 @@ INSERT INTO store_settings (key, value) VALUES
   ('helpline_mobile', '+91 98401 23456'),
   ('whatsapp_number', '919840123456'),
   ('gstin', '33AAACV1234A1Z5'),
-  ('announcement_banner', '⚡ DIWALI PRE-BOOKING OPEN: Get up to 75% OFF Factory Direct Rates!')
+  ('announcement_banner', '⚡ DIWALI PRE-BOOKING OPEN: Get up to 80% OFF Factory Direct Rates!')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- 2. SEED REGIONAL DELIVERY ZONES

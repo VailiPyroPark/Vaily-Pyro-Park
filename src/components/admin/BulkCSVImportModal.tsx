@@ -14,7 +14,7 @@ interface BulkCSVImportModalProps {
 }
 
 export const BulkCSVImportModal: React.FC<BulkCSVImportModalProps> = ({ isOpen, onClose, onImportSuccess }) => {
-  const [discountPercent, setDiscountPercent] = useState<number>(75);
+  const [discountPercent, setDiscountPercent] = useState<number>(80);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [selectedFileSize, setSelectedFileSize] = useState<string>('');
   const [parsedData, setParsedData] = useState<(Partial<Product> & { category?: string; stock?: number })[]>([]);

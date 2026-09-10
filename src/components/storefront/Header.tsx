@@ -454,8 +454,22 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
+            {/* Big Floating Logo with Dark Shadow - No Box */}
+            <div className="my-auto py-6 flex items-center justify-center">
+              <div className="relative w-48 h-48 sm:w-52 sm:h-52 flex items-center justify-center transform transition-transform duration-300 hover:scale-105">
+                <Image
+                  src="/logo.png"
+                  alt="Vaili Pyro Park Brand Logo"
+                  width={220}
+                  height={220}
+                  className="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.35)]"
+                  priority
+                />
+              </div>
+            </div>
+
             {/* Footer Contact Info */}
-            <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1 mt-4">
+            <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1 mt-2">
               <span className="font-bold text-slate-800 block">Vaili Pyro Park</span>
               <span>Direct Factory Outlet • Sivakasi, Tamil Nadu</span>
             </div>

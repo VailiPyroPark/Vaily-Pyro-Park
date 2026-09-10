@@ -2,18 +2,29 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
-import { Plus, Upload, Edit, Search, Download } from 'lucide-react';
+import { Plus, Upload, Edit, Search, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Product, Category } from '@/types';
 import { ProductService } from '@/lib/services/product.service';
 import { BulkCSVImportModal } from '@/components/admin/BulkCSVImportModal';
 import { ProductFormModal } from '@/components/admin/ProductFormModal';
 import { DeleteProductModal } from '@/components/admin/DeleteProductModal';
 
+type SortOption =
+  | 'default'
+  | 'name-asc'
+  | 'name-desc'
+  | 'price-asc'
+  | 'price-desc'
+  | 'mrp-desc'
+  | 'mrp-asc'
+  | 'sku-asc';
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<SortOption>('default');
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
 
   // Add / Edit Modal State
@@ -64,9 +75,9 @@ export default function AdminProductsPage() {
     document.body.removeChild(link);
   };
 
-  // Filtered products computation
+  // Filtered and sorted products computation
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    const result = products.filter((p) => {
       // Search filter
       const matchesSearch =
         !searchQuery ||
@@ -83,7 +94,28 @@ export default function AdminProductsPage() {
 
       return matchesSearch && matchesCategory;
     });
-  }, [products, searchQuery, selectedCategory]);
+
+    return [...result].sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'price-asc':
+          return a.selling_price - b.selling_price;
+        case 'price-desc':
+          return b.selling_price - a.selling_price;
+        case 'mrp-desc':
+          return b.mrp - a.mrp;
+        case 'mrp-asc':
+          return a.mrp - b.mrp;
+        case 'sku-asc':
+          return a.sku.localeCompare(b.sku);
+        default:
+          return 0;
+      }
+    });
+  }, [products, searchQuery, selectedCategory, sortBy]);
 
   const handleOpenAddModal = () => {
     setProductToEdit(null);
@@ -159,8 +191,8 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* SEARCH BAR & CATEGORY DROPDOWN ROW */}
-        <div className="flex items-center gap-2">
+        {/* SEARCH BAR, CATEGORY & SORT ROW */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="relative flex-1 min-w-0">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -180,24 +212,43 @@ export default function AdminProductsPage() {
             )}
           </div>
 
-          <div className="shrink-0 max-w-[135px] sm:max-w-none">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-amber-500 transition-all cursor-pointer truncate"
-            >
-              <option value="ALL">All Categories ({products.length})</option>
-              {categories.map((cat) => {
-                const count = products.filter(
-                  (p) => p.category_id === cat.id || p.category?.id === cat.id
-                ).length;
-                return (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name} ({count})
-                  </option>
-                );
-              })}
-            </select>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex-1 sm:flex-initial sm:w-44">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-amber-500 transition-all cursor-pointer truncate"
+              >
+                <option value="ALL">All Categories ({products.length})</option>
+                {categories.map((cat) => {
+                  const count = products.filter(
+                    (p) => p.category_id === cat.id || p.category?.id === cat.id
+                  ).length;
+                  return (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="flex-1 sm:flex-initial sm:w-40">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-amber-500 transition-all cursor-pointer truncate"
+              >
+                <option value="default">Sort: Default</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+                <option value="mrp-desc">MRP: High to Low</option>
+                <option value="mrp-asc">MRP: Low to High</option>
+                <option value="sku-asc">SKU: A to Z</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -214,6 +265,7 @@ export default function AdminProductsPage() {
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('ALL');
+                setSortBy('default');
               }}
               className="mt-1 px-3 py-1 bg-slate-950 text-white font-bold rounded-xl text-xs cursor-pointer"
             >
@@ -223,13 +275,63 @@ export default function AdminProductsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200 select-none">
                 <tr>
-                  <th className="p-3 sm:p-4">Product Name</th>
-                  <th className="p-3 sm:p-4 hidden sm:table-cell">SKU</th>
+                  <th
+                    onClick={() => setSortBy((prev) => (prev === 'name-asc' ? 'name-desc' : 'name-asc'))}
+                    className="p-3 sm:p-4 cursor-pointer hover:text-slate-950 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Product Name</span>
+                      {sortBy === 'name-asc' ? (
+                        <ArrowUp className="w-3.5 h-3.5 text-amber-600" />
+                      ) : sortBy === 'name-desc' ? (
+                        <ArrowDown className="w-3.5 h-3.5 text-amber-600" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => setSortBy((prev) => (prev === 'sku-asc' ? 'default' : 'sku-asc'))}
+                    className="p-3 sm:p-4 hidden sm:table-cell cursor-pointer hover:text-slate-950 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>SKU</span>
+                      {sortBy === 'sku-asc' && <ArrowUp className="w-3.5 h-3.5 text-amber-600" />}
+                    </div>
+                  </th>
                   <th className="p-3 sm:p-4 hidden sm:table-cell">Pack Size</th>
-                  <th className="p-3 sm:p-4 hidden sm:table-cell">MRP</th>
-                  <th className="p-3 sm:p-4">Price</th>
+                  <th
+                    onClick={() => setSortBy((prev) => (prev === 'mrp-desc' ? 'mrp-asc' : 'mrp-desc'))}
+                    className="p-3 sm:p-4 hidden sm:table-cell cursor-pointer hover:text-slate-950 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>MRP</span>
+                      {sortBy === 'mrp-desc' ? (
+                        <ArrowDown className="w-3.5 h-3.5 text-amber-600" />
+                      ) : sortBy === 'mrp-asc' ? (
+                        <ArrowUp className="w-3.5 h-3.5 text-amber-600" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    onClick={() => setSortBy((prev) => (prev === 'price-asc' ? 'price-desc' : 'price-asc'))}
+                    className="p-3 sm:p-4 cursor-pointer hover:text-slate-950 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Price</span>
+                      {sortBy === 'price-asc' ? (
+                        <ArrowUp className="w-3.5 h-3.5 text-amber-600" />
+                      ) : sortBy === 'price-desc' ? (
+                        <ArrowDown className="w-3.5 h-3.5 text-amber-600" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+                      )}
+                    </div>
+                  </th>
                   <th className="p-3 sm:p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -250,9 +352,12 @@ export default function AdminProductsPage() {
                               '🎆'
                             )}
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex flex-col items-start gap-0.5">
                             <span className="font-semibold text-slate-800 block text-xs sm:text-sm">
                               {product.name}
+                            </span>
+                            <span className="inline-flex sm:hidden items-center px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-800 border border-amber-500/20 font-mono text-[10px] font-bold tracking-wider">
+                              {product.sku}
                             </span>
                           </div>
                         </div>

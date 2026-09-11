@@ -246,7 +246,8 @@ export class ProductService {
       const supabase = this.getSupabase();
       const { data, error } = await supabase
         .from('products')
-        .select('*, category:categories(*)');
+        .select('*, category:categories(*)')
+        .order('sku', { ascending: true });
 
       if (error || !data) return [];
 

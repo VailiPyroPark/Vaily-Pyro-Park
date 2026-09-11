@@ -149,6 +149,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   <div className="flex-1 min-w-0 pr-1">
                     <h4 className="font-bold text-xs text-slate-900 line-clamp-2 leading-snug break-words">
                       {product.name}
+                      {product.pack_size && !product.name.toLowerCase().includes(product.pack_size.toLowerCase()) && (
+                        <span className="font-semibold text-slate-500 text-[10px] ml-1">
+                          ({product.pack_size})
+                        </span>
+                      )}
                     </h4>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[10px] text-slate-400 font-medium">₹{product.selling_price.toLocaleString()} / unit</span>

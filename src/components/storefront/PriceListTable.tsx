@@ -52,6 +52,16 @@ function formatPrice(val: number): string {
   return Number.isInteger(val) ? `₹${val}` : `₹${val.toFixed(2)}`;
 }
 
+function formatPiecesCount(packSize?: string): string {
+  if (!packSize) return '';
+  const trimmed = packSize.trim();
+  if (!trimmed) return '';
+  if (/^\d+$/.test(trimmed)) {
+    return `${trimmed}\u00A0Pcs`;
+  }
+  return trimmed.replace(/\s+/g, '\u00A0');
+}
+
 export const PriceListTable: React.FC<PriceListTableProps> = ({
   products,
   categories,
@@ -175,22 +185,22 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                 {/* UNIFIED PROFESSIONAL TABLE HEADER */}
                 <thead>
                   <tr className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10px] sm:text-xs border-b border-slate-200 select-none">
-                    <th className="w-[36px] sm:w-[48px] py-2 px-1 text-center border-r border-slate-200 text-slate-500">
+                    <th className="w-[34px] sm:w-[48px] py-2 px-0.5 sm:px-1 text-center border-r border-slate-200 text-slate-500">
                       IMG
                     </th>
-                    <th className="py-2 px-2 sm:px-3 border-r border-slate-200 text-left text-slate-800">
+                    <th className="py-2 px-1.5 sm:px-3 border-r border-slate-200 text-left text-slate-800">
                       PRODUCT
                     </th>
-                    <th className="w-[48px] sm:w-[72px] py-2 px-1 text-right border-r border-slate-200 text-slate-700">
+                    <th className="w-[44px] sm:w-[72px] py-2 px-0.5 sm:px-1 text-right border-r border-slate-200 text-slate-700">
                       MRP
                     </th>
-                    <th className="w-[48px] sm:w-[72px] py-2 px-1 text-right border-r border-slate-200 text-slate-900">
+                    <th className="w-[44px] sm:w-[72px] py-2 px-0.5 sm:px-1 text-right border-r border-slate-200 text-slate-900">
                       RATE
                     </th>
-                    <th className="w-[44px] sm:w-[70px] py-2 px-1 text-center border-r border-slate-200 text-slate-700">
+                    <th className="w-[40px] sm:w-[70px] py-2 px-0.5 sm:px-1 text-center border-r border-slate-200 text-slate-700">
                       QTY
                     </th>
-                    <th className="w-[52px] sm:w-[80px] py-2 px-1 sm:px-2 text-right text-slate-900">
+                    <th className="w-[46px] sm:w-[80px] py-2 px-0.5 sm:px-2 text-right text-slate-900">
                       TOTAL
                     </th>
                   </tr>
@@ -203,6 +213,9 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                     const itemTotal = product.selling_price * qty;
                     const isOutOfStock =
                       (product.stock !== undefined && product.stock <= 0) || product.is_active === false;
+                    const pieces = formatPiecesCount(product.pack_size);
+                    const showPieces =
+                      pieces && !product.name.toLowerCase().includes(pieces.toLowerCase());
 
                     return (
                       <tr
@@ -212,10 +225,10 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                         }`}
                       >
                         {/* 1. IMG */}
-                        <td className="w-[36px] sm:w-[48px] py-2 px-1 text-center border-r border-slate-200/80 align-middle">
+                        <td className="w-[34px] sm:w-[48px] py-2 px-0.5 sm:px-1 text-center border-r border-slate-200/80 align-middle">
                           <div
                             onClick={() => onQuickView && onQuickView(product)}
-                            className="relative w-8 h-8 sm:w-10 sm:h-10 bg-slate-50 rounded-lg overflow-hidden border border-slate-200/80 shrink-0 cursor-pointer mx-auto group shadow-2xs hover:border-amber-500 transition-colors"
+                            className="relative w-7 h-7 sm:w-10 sm:h-10 bg-slate-50 rounded-lg overflow-hidden border border-slate-200/80 shrink-0 cursor-pointer mx-auto group shadow-2xs hover:border-amber-500 transition-colors"
                             title="Click to view photo"
                           >
                             <img
@@ -230,29 +243,34 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                           </div>
                         </td>
 
-                        {/* 2. PRODUCT (ONLY product name, clean & simple) */}
-                        <td className="py-2 px-2 sm:px-3 border-r border-slate-200/80 align-middle">
+                        {/* 2. PRODUCT (Product Name with Pieces Count) */}
+                        <td className="py-2 px-1.5 sm:px-3 border-r border-slate-200/80 align-middle">
                           <span
                             onClick={() => onQuickView && onQuickView(product)}
-                            className="font-bold text-slate-900 text-xs sm:text-sm hover:text-amber-600 transition-colors cursor-pointer leading-tight line-clamp-2 block break-words"
-                            title={product.name}
+                            className="font-bold text-slate-900 text-[11px] sm:text-sm hover:text-amber-600 transition-colors cursor-pointer leading-tight line-clamp-2 block break-words"
+                            title={`${product.name}${showPieces ? ` (${pieces})` : ''}`}
                           >
-                            {product.name}
+                            <span>{product.name}</span>
+                            {showPieces && (
+                              <span className="font-semibold text-slate-500 text-[10px] sm:text-xs ml-1 whitespace-nowrap inline-block">
+                                ({pieces})
+                              </span>
+                            )}
                           </span>
                         </td>
 
                         {/* 3. MRP (Clearly visible, bigger & prominent in bold red strikethrough) */}
-                        <td className="w-[48px] sm:w-[72px] py-2 px-1 sm:px-1.5 text-right border-r border-slate-200/80 font-mono text-xs sm:text-base text-red-600 line-through decoration-red-400/90 font-bold align-middle whitespace-nowrap">
+                        <td className="w-[44px] sm:w-[72px] py-2 px-0.5 sm:px-1.5 text-right border-r border-slate-200/80 font-mono text-xs sm:text-base text-red-600 line-through decoration-red-400/90 font-bold align-middle whitespace-nowrap">
                           {formatPrice(product.mrp)}
                         </td>
 
                         {/* 4. RATE (Clearly visible, bigger, bolder discounted price) */}
-                        <td className="w-[48px] sm:w-[72px] py-2 px-1 sm:px-1.5 text-right border-r border-slate-200/80 font-mono text-[13px] sm:text-base font-black text-slate-950 align-middle whitespace-nowrap">
+                        <td className="w-[44px] sm:w-[72px] py-2 px-0.5 sm:px-1.5 text-right border-r border-slate-200/80 font-mono text-[13px] sm:text-base font-black text-slate-950 align-middle whitespace-nowrap">
                           {formatPrice(product.selling_price)}
                         </td>
 
                         {/* 5. QTY (Strictly numeric digits only) */}
-                        <td className="w-[44px] sm:w-[70px] py-2 px-0.5 sm:px-1 text-center border-r border-slate-200/80 align-middle">
+                        <td className="w-[40px] sm:w-[70px] py-2 px-0.5 sm:px-1 text-center border-r border-slate-200/80 align-middle">
                           {isOutOfStock ? (
                             <span className="text-red-600 font-bold text-[9px] sm:text-xs uppercase tracking-tight leading-none block">
                               out of stock
@@ -291,7 +309,7 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                         </td>
 
                         {/* 6. TOTAL (Clearly visible, bigger live total for product) */}
-                        <td className="w-[52px] sm:w-[80px] py-2 px-1 sm:px-2 text-right align-middle whitespace-nowrap">
+                        <td className="w-[46px] sm:w-[80px] py-2 px-0.5 sm:px-2 text-right align-middle whitespace-nowrap">
                           <span
                             className={`font-mono text-[13px] sm:text-base block ${
                               itemTotal > 0 ? 'text-amber-800 font-black' : 'text-slate-400 font-medium'

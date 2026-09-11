@@ -11,20 +11,21 @@ import { DeleteProductModal } from '@/components/admin/DeleteProductModal';
 
 type SortOption =
   | 'default'
+  | 'sku-asc'
+  | 'sku-desc'
   | 'name-asc'
   | 'name-desc'
   | 'price-asc'
   | 'price-desc'
   | 'mrp-desc'
-  | 'mrp-asc'
-  | 'sku-asc';
+  | 'mrp-asc';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
-  const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [sortBy, setSortBy] = useState<SortOption>('sku-asc');
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
 
   // Add / Edit Modal State
@@ -98,9 +99,9 @@ export default function AdminProductsPage() {
     return [...result].sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case 'name-desc':
-          return b.name.localeCompare(a.name);
+          return (b.name || '').localeCompare(a.name || '');
         case 'price-asc':
           return a.selling_price - b.selling_price;
         case 'price-desc':
@@ -109,10 +110,12 @@ export default function AdminProductsPage() {
           return b.mrp - a.mrp;
         case 'mrp-asc':
           return a.mrp - b.mrp;
+        case 'sku-desc':
+          return (b.sku || '').localeCompare(a.sku || '', undefined, { numeric: true, sensitivity: 'base' });
         case 'sku-asc':
-          return a.sku.localeCompare(b.sku);
+        case 'default':
         default:
-          return 0;
+          return (a.sku || '').localeCompare(b.sku || '', undefined, { numeric: true, sensitivity: 'base' });
       }
     });
   }, [products, searchQuery, selectedCategory, sortBy]);
@@ -233,20 +236,20 @@ export default function AdminProductsPage() {
               </select>
             </div>
 
-            <div className="flex-1 sm:flex-initial sm:w-40">
+            <div className="flex-1 sm:flex-initial sm:w-44">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-amber-500 transition-all cursor-pointer truncate"
               >
-                <option value="default">Sort: Default</option>
+                <option value="sku-asc">Sort: SKU (Default)</option>
+                <option value="sku-desc">SKU: Z to A</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
                 <option value="name-asc">Name: A to Z</option>
                 <option value="name-desc">Name: Z to A</option>
                 <option value="mrp-desc">MRP: High to Low</option>
                 <option value="mrp-asc">MRP: Low to High</option>
-                <option value="sku-asc">SKU: A to Z</option>
               </select>
             </div>
           </div>
@@ -265,7 +268,7 @@ export default function AdminProductsPage() {
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('ALL');
-                setSortBy('default');
+                setSortBy('sku-asc');
               }}
               className="mt-1 px-3 py-1 bg-slate-950 text-white font-bold rounded-xl text-xs cursor-pointer"
             >
@@ -293,12 +296,18 @@ export default function AdminProductsPage() {
                     </div>
                   </th>
                   <th
-                    onClick={() => setSortBy((prev) => (prev === 'sku-asc' ? 'default' : 'sku-asc'))}
+                    onClick={() => setSortBy((prev) => (prev === 'sku-asc' ? 'sku-desc' : 'sku-asc'))}
                     className="p-3 sm:p-4 hidden sm:table-cell cursor-pointer hover:text-slate-950 transition-colors"
                   >
                     <div className="flex items-center gap-1.5">
                       <span>SKU</span>
-                      {sortBy === 'sku-asc' && <ArrowUp className="w-3.5 h-3.5 text-amber-600" />}
+                      {sortBy === 'sku-asc' ? (
+                        <ArrowUp className="w-3.5 h-3.5 text-amber-600" />
+                      ) : sortBy === 'sku-desc' ? (
+                        <ArrowDown className="w-3.5 h-3.5 text-amber-600" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+                      )}
                     </div>
                   </th>
                   <th className="p-3 sm:p-4 hidden sm:table-cell">Pack Size</th>

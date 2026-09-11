@@ -56,8 +56,8 @@ export class WhatsAppService {
 
     switch (templateType) {
       case 'ORDER_RECEIPT': {
-        const itemsList = order.items
-          ? order.items.map((i) => `• ${i.quantity}x ${i.product_name} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
+        const itemsList = order.items && order.items.length > 0
+          ? order.items.map((i) => `• ${i.product_name} - ${i.quantity} ${i.quantity === 1 ? 'Pc' : 'Pcs'} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
           : '• Sivakasi Crackers Combo';
 
         return `🎆 *ORDER CONFIRMATION - VAILI PYRO PARK* 🎆
@@ -171,8 +171,8 @@ ${trackingUrl}
    * Backward-compatible store order link generator for storefront confirmation
    */
   public static generateOrderWhatsAppLink(order: Order, storePhoneNumber: string = '919952108746'): string {
-    const itemsList = order.items
-      ? order.items.map((i) => `• ${i.quantity}x ${i.product_name} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
+    const itemsList = order.items && order.items.length > 0
+      ? order.items.map((i) => `• ${i.product_name} - ${i.quantity} ${i.quantity === 1 ? 'Pc' : 'Pcs'} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
       : '';
 
     const text = `🎆 *NEW CRACKER ORDER: ${order.order_number}* 🎆\n\n*Customer Details:*\n• Name: ${order.customer_name}\n• Phone: ${order.customer_mobile}\n• Shipping Address: ${order.shipping_address}, ${order.city}, ${order.state} - ${order.pincode}\n\n*Ordered Items:*\n${itemsList}\n\n*Financial Summary:*\n• Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\n• Delivery Fee: ${order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}\n• *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*\n\nThank you for choosing Vaili Pyro Park! Please confirm dispatch timeline.`;

@@ -2,22 +2,22 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Gift, ShoppingBag, ChevronRight, Sparkles, SlidersHorizontal, Flame, Volume2, RotateCw, Zap, Rocket, Package } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Sparkles, SlidersHorizontal, Flame, Volume2, RotateCw, Zap, Rocket, Package } from 'lucide-react';
 import { Header } from '@/components/storefront/Header';
 import { QuickAddCard } from '@/components/storefront/QuickAddCard';
 import { QuickAddListItem } from '@/components/storefront/QuickAddListItem';
 import { PriceListTable } from '@/components/storefront/PriceListTable';
+import { StorefrontCatalogLoader } from '@/components/storefront/StorefrontCatalogLoader';
 import { QuickViewModal } from '@/components/storefront/QuickViewModal';
 import { CartDrawer } from '@/components/storefront/CartDrawer';
 import { Footer } from '@/components/storefront/Footer';
-import { Product, Category, Combo, DeliveryZone } from '@/types';
+import { Product, Category, DeliveryZone } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { ProductService } from '@/lib/services/product.service';
 
 export default function StorefrontPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [combos, setCombos] = useState<Combo[]>([]);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -30,15 +30,13 @@ export default function StorefrontPage() {
   useEffect(() => {
     async function loadDbData() {
       try {
-        const [fetchedProducts, fetchedCategories, fetchedCombos, fetchedZones] = await Promise.all([
+        const [fetchedProducts, fetchedCategories, fetchedZones] = await Promise.all([
           ProductService.getAllProducts(),
           ProductService.getCategories(),
-          ProductService.getCombos(),
           ProductService.getDeliveryZones(),
         ]);
         setProducts(fetchedProducts);
         setCategories(fetchedCategories);
-        setCombos(fetchedCombos);
         setZones(fetchedZones);
       } catch (e) {
         console.error('Failed to load DB catalog', e);
@@ -128,26 +126,6 @@ export default function StorefrontPage() {
     return groups;
   }, [filteredProducts, categories]);
 
-  const handleAddComboToCart = (combo: Combo) => {
-    const comboProduct: Product = {
-      id: combo.id,
-      name: combo.name,
-      slug: combo.slug,
-      sku: `CMB-${combo.id}`,
-      description: combo.description,
-      pack_size: 'Assortment Box',
-      mrp: combo.mrp,
-      selling_price: combo.price,
-      image_url: combo.image_url,
-      is_active: combo.is_active,
-      is_featured: true,
-      is_best_seller: true,
-      sound_level: 'Medium',
-    };
-    addToCart(comboProduct, 1);
-    setIsCartOpen(true);
-  };
-
 
 
   return (
@@ -169,8 +147,8 @@ export default function StorefrontPage() {
 
           {/* MAIN PRODUCT CATALOGUE SECTION WITH CATEGORY CLASSIFICATION HEADERS */}
           <section className="space-y-4">
-            {/* Active Search / Category Filter Badge (Only shown when filtered) */}
-            {(searchQuery || selectedCategory !== 'all') && (
+            {/* Active Search / Category Filter Badge (Only shown when filtered and not loading) */}
+            {!pageLoading && (searchQuery || selectedCategory !== 'all') && (
               <div className="flex items-center justify-between bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200/80 text-xs font-semibold text-amber-900">
                 <div className="flex items-center gap-2 truncate">
                   <span>Showing results for:</span>
@@ -191,8 +169,10 @@ export default function StorefrontPage() {
               </div>
             )}
 
-            {/* Empty State */}
-            {filteredProducts.length === 0 ? (
+            {/* Content states: Animated Loader -> Empty State -> Product Table */}
+            {pageLoading ? (
+              <StorefrontCatalogLoader />
+            ) : filteredProducts.length === 0 ? (
               <div className="bg-white rounded-3xl border border-slate-200/90 p-10 text-center shadow-2xs space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 mx-auto flex items-center justify-center text-xl font-bold">
                   🔍
@@ -222,72 +202,6 @@ export default function StorefrontPage() {
               />
             )}
           </section>
-
-          {/* CURATED COMBOS SECTION */}
-          {combos.length > 0 && (
-            <section className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-slate-100 p-4 sm:p-6 rounded-3xl border border-amber-500/20 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-sm shadow-2xs">
-                    <Gift className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h2 className="font-black text-slate-950 text-base font-heading">Diwali Gift Boxes &amp; Combos</h2>
-                    <span className="text-xs font-bold text-amber-700">Factory Direct Value Packs</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {combos.map((combo) => (
-                  <div
-                    key={combo.id}
-                    className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all flex flex-col sm:flex-row items-center gap-4"
-                  >
-                    <img
-                      src={combo.image_url || '/logo.png'}
-                      alt={combo.name}
-                      className={`w-24 h-24 rounded-xl border border-slate-200 shrink-0 ${combo.image_url ? 'object-cover' : 'object-contain p-2 bg-slate-50'}`}
-                    />
-                    <div className="flex-1 min-w-0 space-y-1.5 text-center sm:text-left">
-                      <div className="flex items-center justify-center sm:justify-start gap-2">
-                        <span className="bg-red-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase">
-                          GIFT BOX
-                        </span>
-                        <span className="text-xs font-bold text-emerald-600">
-                          SAVE ₹{(combo.mrp - combo.price).toLocaleString()}
-                        </span>
-                      </div>
-                      <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm truncate font-heading">
-                        {combo.name}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                        {combo.description}
-                      </p>
-                      <div className="pt-1 flex items-center justify-between">
-                        <div>
-                          <span className="text-base font-black text-slate-950 font-mono">
-                            ₹{combo.price.toLocaleString()}
-                          </span>
-                          {combo.mrp > combo.price && (
-                            <span className="text-xs text-slate-400 line-through ml-2 font-mono">
-                              ₹{combo.mrp.toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => handleAddComboToCart(combo)}
-                          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-2xs transition-all active:scale-98 cursor-pointer"
-                        >
-                          + Add Combo Box
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
         </main>
       </div>
 

@@ -46,8 +46,8 @@ export class NotificationService {
 
       const notification = new Notification(title, {
         body,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/logo.png',
+        badge: '/logo.png',
         tag: `order-${order.id || order.order_number}`,
       });
 

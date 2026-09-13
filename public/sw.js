@@ -2,7 +2,7 @@
 const CACHE_NAME = 'vpp-admin-v1';
 const ASSETS_TO_CACHE = [
   '/admin',
-  '/favicon.ico',
+  '/logo.png',
   '/manifest.json'
 ];
 
@@ -49,8 +49,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || '🎆 New Order Received!';
   const options = {
     body: data.body || 'A new fireworks order has been placed.',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/logo.png',
+    badge: '/logo.png',
     data: data.url || '/admin/orders',
   };
 

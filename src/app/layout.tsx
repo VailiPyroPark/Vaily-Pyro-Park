@@ -27,6 +27,13 @@ export const metadata: Metadata = {
     'Diwali Crackers Online Purchase',
     'Best Quality Crackers Sivakasi',
   ],
+  icons: {
+    icon: [
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({

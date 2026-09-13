@@ -143,10 +143,12 @@ export default function StorefrontPage() {
         />
 
         <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
-
+          <h1 className="sr-only">
+            Vaili Pyro Park - Sivakasi Diwali Crackers 2026 Online Booking & Wholesale Factory Price List
+          </h1>
 
           {/* MAIN PRODUCT CATALOGUE SECTION WITH CATEGORY CLASSIFICATION HEADERS */}
-          <section className="space-y-4">
+          <section id="catalog" className="space-y-4">
             {/* Active Search / Category Filter Badge (Only shown when filtered and not loading) */}
             {!pageLoading && (searchQuery || selectedCategory !== 'all') && (
               <div className="flex items-center justify-between bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200/80 text-xs font-semibold text-amber-900">

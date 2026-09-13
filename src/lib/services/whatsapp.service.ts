@@ -1,4 +1,5 @@
 import { Order } from '@/types';
+import { getSiteUrl } from '@/lib/constants/site';
 
 export type WhatsAppTemplateType =
   | 'ORDER_RECEIPT'
@@ -52,7 +53,7 @@ export class WhatsAppService {
     const formattedPhone = this.formatWhatsAppPhone(order.customer_mobile);
     const trackingUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/track-order?id=${order.id}`
-      : `https://vailipyropark.com/track-order?id=${order.id}`;
+      : `${getSiteUrl()}/track-order?id=${order.id}`;
 
     switch (templateType) {
       case 'ORDER_RECEIPT': {

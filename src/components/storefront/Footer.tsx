@@ -47,8 +47,7 @@ export const Footer: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
           <Link href="/" className="hover:text-amber-600 transition-colors">Storefront</Link>
-          <Link href="/quick-shop" className="hover:text-amber-600 transition-colors">Quick Shop Mode</Link>
-          <Link href="/buy-again" className="hover:text-amber-600 transition-colors">Buy Again</Link>
+          <Link href="/#catalog" className="hover:text-amber-600 transition-colors">Fireworks Price List</Link>
           <Link href="/track-order" className="hover:text-amber-600 transition-colors">Order Tracking</Link>
         </div>
 

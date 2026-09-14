@@ -869,7 +869,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="text-right shrink-0 ml-2">
                   <span className="font-mono font-bold text-slate-900 text-xs">Min ₹3,000</span>
-                  <span className="text-[10px] text-emerald-600 block leading-none font-medium">Free Lorry</span>
+                  <span className="text-[10px] text-emerald-700 block leading-none font-medium font-mono">Freight ₹0</span>
                 </div>
               </div>
 

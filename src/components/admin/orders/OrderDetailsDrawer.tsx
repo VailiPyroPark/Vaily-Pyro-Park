@@ -318,12 +318,8 @@ export function OrderDetailsDrawer({
                   )}
                   <div className="flex justify-between">
                     <span>Delivery Fee ({order.state}):</span>
-                    <span className="font-bold text-slate-900">
-                      {order.delivery_fee === 0 ? (
-                        <span className="text-emerald-600 font-black">FREE</span>
-                      ) : (
-                        `₹${order.delivery_fee.toLocaleString()}`
-                      )}
+                    <span className="font-bold text-slate-900 font-mono">
+                      ₹{(order.delivery_fee ?? 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm font-black text-slate-950 pt-3 border-t border-slate-200">

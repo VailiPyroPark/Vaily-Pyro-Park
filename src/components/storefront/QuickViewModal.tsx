@@ -44,6 +44,14 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
             <img
               src={product.image_url || '/logo.png'}
               alt={product.name}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.endsWith('/logo.png')) {
+                  target.src = '/logo.png';
+                }
+              }}
               className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-6'}`}
             />
             {discountPercent > 0 && (

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem, DeliveryZone } from '@/types';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 interface CartContextType {
   cart: CartItem[];
@@ -39,6 +40,7 @@ const DEFAULT_ZONE: DeliveryZone = {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { settings } = useStoreSettings();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedZone, setSelectedZone] = useState<DeliveryZone>(DEFAULT_ZONE);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -116,13 +118,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart([]);
   };
 
+  // Dynamically sync selectedZone with settings on load and when settings change
+  useEffect(() => {
+    if (settings) {
+      setSelectedZone((prev) => {
+        const isTN = prev.id === 'zone-tn' || prev.zone_name.toLowerCase().includes('tamil');
+        const expectedMin = isTN ? settings.min_order_tamil_nadu : settings.min_order_other_states;
+        if (expectedMin && expectedMin > 0 && prev.min_order_amount !== expectedMin) {
+          return { ...prev, min_order_amount: expectedMin };
+        }
+        return prev;
+      });
+    }
+  }, [settings.min_order_tamil_nadu, settings.min_order_other_states]);
+
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.product.selling_price * item.quantity, 0);
   const totalMrp = cart.reduce((sum, item) => sum + item.product.mrp * item.quantity, 0);
   const savings = Math.max(0, totalMrp - subtotal);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const minOrderThreshold = selectedZone.min_order_amount;
+  const isTN = selectedZone.id === 'zone-tn' || selectedZone.zone_name.toLowerCase().includes('tamil');
+  const minOrderThreshold = isTN
+    ? (settings.min_order_tamil_nadu || 3000)
+    : (selectedZone.min_order_amount || settings.min_order_other_states || 5000);
   const remainingForMinOrder = Math.max(0, minOrderThreshold - subtotal);
   const isMinOrderReached = subtotal >= minOrderThreshold;
   const deliveryFee = isMinOrderReached ? selectedZone.delivery_fee : 0;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -21,7 +21,10 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { PricingService } from '@/lib/services/pricing.service';
 import { OrderService } from '@/lib/services/order.service';
+import { DeliveryZone } from '@/types';
 
 // All 28 Indian states + 8 Union Territories
 const INDIAN_STATES = [
@@ -73,13 +76,11 @@ export default function CheckoutPage() {
     subtotal,
     savings,
     selectedZone,
-    deliveryFee,
-    grandTotal,
-    minOrderThreshold,
-    isMinOrderReached,
-    remainingForMinOrder,
     clearCart,
   } = useCart();
+
+  const { settings } = useStoreSettings();
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -92,6 +93,47 @@ export default function CheckoutPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Load delivery zones
+  useEffect(() => {
+    PricingService.fetchDeliveryZones()
+      .then((z) => setZones(z))
+      .catch((err) => console.warn('Failed to load checkout zones:', err));
+  }, []);
+
+  const isTamilNadu =
+    formData.state.trim().toLowerCase() === 'tamil nadu' ||
+    formData.state.trim().toLowerCase() === 'tn';
+
+  // Matched delivery zone
+  const matchingZone = useMemo(() => {
+    if (!zones.length) return selectedZone;
+    return (
+      zones.find((z) =>
+        z.state_codes.some((code) => code.toLowerCase() === formData.state.toLowerCase())
+      ) ?? zones[zones.length - 1]
+    );
+  }, [zones, formData.state, selectedZone]);
+
+  // Determine active minimum order threshold based on state overrides, TN settings, and other states settings
+  const activeMinOrderThreshold = useMemo(() => {
+    if (!settings) return matchingZone?.min_order_amount ?? 3000;
+    const override = settings.state_min_order_overrides?.[formData.state];
+    if (typeof override === 'number' && override > 0) return override;
+    if (isTamilNadu) return settings.min_order_tamil_nadu;
+    return matchingZone?.id === 'zone-south' ? matchingZone.min_order_amount : settings.min_order_other_states;
+  }, [settings, formData.state, isTamilNadu, matchingZone]);
+
+  const isMinOrderReachedForState = subtotal >= activeMinOrderThreshold;
+  const remainingForMinOrderForState = Math.max(0, activeMinOrderThreshold - subtotal);
+  const effectiveDeliveryFee = isMinOrderReachedForState ? (matchingZone?.delivery_fee ?? 0) : 0;
+  const effectiveGrandTotal = subtotal + effectiveDeliveryFee;
+
+  const isMaxLimitExceeded = Boolean(
+    settings?.max_order_limit_enabled &&
+    settings?.max_order_limit_amount &&
+    subtotal > settings.max_order_limit_amount
+  );
 
   // Auto-restore cached user details from localStorage
   useEffect(() => {
@@ -166,9 +208,16 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!isMinOrderReached) {
+    if (isMaxLimitExceeded) {
       setErrorMessage(
-        `The minimum order for ${selectedZone.zone_name} is ₹${minOrderThreshold.toLocaleString('en-IN')}. Please add items worth ₹${remainingForMinOrder.toLocaleString('en-IN')} more before placing your order.`
+        `Order exceeds maximum allowed online limit of ₹${settings?.max_order_limit_amount.toLocaleString('en-IN')}. Please reduce order items or contact us directly on WhatsApp for bulk purchases.`
+      );
+      return;
+    }
+
+    if (!isMinOrderReachedForState) {
+      setErrorMessage(
+        `The minimum order for ${formData.state} is ₹${activeMinOrderThreshold.toLocaleString('en-IN')}. Please add items worth ₹${remainingForMinOrderForState.toLocaleString('en-IN')} more before placing your order.`
       );
       return;
     }
@@ -254,7 +303,7 @@ export default function CheckoutPage() {
           </h1>
           <div className="inline-flex items-center gap-1.5 text-xs text-amber-950 font-extrabold bg-amber-100 px-3 py-1.5 rounded-full border border-amber-300/80 shadow-2xs">
             <MapPin className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-            <span>{selectedZone.zone_name}</span>
+            <span>{isTamilNadu ? 'Tamil Nadu (Home State)' : formData.state} • Min ₹{activeMinOrderThreshold.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -409,12 +458,21 @@ export default function CheckoutPage() {
                 </div>
 
               {/* Submit CTA */}
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
+                {isMaxLimitExceeded && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 font-bold flex items-start gap-2 shadow-2xs">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="leading-snug">
+                      Order total exceeds maximum online limit of ₹{settings?.max_order_limit_amount.toLocaleString('en-IN')}. For bulk purchases, please contact us directly on WhatsApp.
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  disabled={isSubmitting || !isMinOrderReached}
+                  disabled={isSubmitting || !isMinOrderReachedForState || isMaxLimitExceeded}
                   className={`w-full py-3.5 px-6 rounded-2xl font-black text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-98 ${
-                    isMinOrderReached && !isSubmitting
+                    isMinOrderReachedForState && !isMaxLimitExceeded && !isSubmitting
                       ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/30 glow-gold'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
                   }`}
@@ -424,12 +482,14 @@ export default function CheckoutPage() {
                       <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                       <span>Placing Your Order...</span>
                     </>
-                  ) : !isMinOrderReached ? (
-                    <span>Add ₹{remainingForMinOrder.toLocaleString('en-IN')} more to place order</span>
+                  ) : isMaxLimitExceeded ? (
+                    <span>Maximum Order Limit Exceeded</span>
+                  ) : !isMinOrderReachedForState ? (
+                    <span>Add ₹{remainingForMinOrderForState.toLocaleString('en-IN')} more for {formData.state}</span>
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4 text-slate-950" />
-                      <span>Place Order Now • ₹{grandTotal.toLocaleString('en-IN')}</span>
+                      <span>Place Order Now • ₹{effectiveGrandTotal.toLocaleString('en-IN')}</span>
                     </>
                   )}
                 </button>
@@ -510,16 +570,10 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="truncate pr-2">
-                    Delivery ({selectedZone.zone_name.replace(/\s*\([^)]*\)/g, '')}):
+                    Delivery ({formData.state}):
                   </span>
                   <span className="font-bold text-slate-900 font-mono">
-                    {deliveryFee === 0 ? (
-                      <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-black text-[9px] uppercase tracking-wider border border-emerald-300">
-                        FREE
-                      </span>
-                    ) : (
-                      `₹${deliveryFee.toLocaleString('en-IN')}`
-                    )}
+                    ₹{effectiveDeliveryFee.toLocaleString('en-IN')}
                   </span>
                 </div>
 
@@ -529,10 +583,10 @@ export default function CheckoutPage() {
                     <span className="text-[10px] uppercase tracking-wider font-extrabold text-amber-400 block leading-none">
                       Amount To Pay
                     </span>
-                    <span className="text-[9px] text-slate-400 font-medium mt-0.5 block">Taxes &amp; fees included</span>
+                    <span className="text-[9px] text-slate-400 font-medium mt-0.5 block">Taxes &amp; freight included</span>
                   </div>
                   <span className="text-base sm:text-lg font-black text-amber-400 font-mono tracking-tight glow-gold">
-                    ₹{grandTotal.toLocaleString('en-IN')}
+                    ₹{effectiveGrandTotal.toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>

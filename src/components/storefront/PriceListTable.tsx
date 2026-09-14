@@ -234,8 +234,17 @@ export const PriceListTable: React.FC<PriceListTableProps> = ({
                             <img
                               src={product.image_url || '/logo.png'}
                               alt={product.name}
-                              className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1'} group-hover:scale-105 transition-transform duration-200`}
+                              width={40}
+                              height={40}
                               loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (!target.src.endsWith('/logo.png')) {
+                                  target.src = '/logo.png';
+                                }
+                              }}
+                              className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1'} group-hover:scale-105 transition-transform duration-200`}
                             />
                             <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                               <Eye className="w-3 h-3 drop-shadow" />

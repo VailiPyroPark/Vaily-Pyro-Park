@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Order, OrderStatus, OrderItem } from '@/types';
 import { PricingService, CheckoutPayloadItem } from './pricing.service';
 import { ProductService } from './product.service';
+import { SettingsService } from './settings.service';
 
 export interface CreateOrderDTO {
   customer_name: string;
@@ -52,17 +53,29 @@ export class OrderService {
       throw new Error('Your cart is empty.');
     }
 
-    // Fetch live products and delivery zones from DB for authoritative pricing
-    const [products, zones] = await Promise.all([
+    // Fetch live products, delivery zones, and settings from DB for authoritative pricing & rule enforcement
+    const [products, zones, settings] = await Promise.all([
       ProductService.getAllProducts(),
       PricingService.fetchDeliveryZones(),
+      SettingsService.getAllSettings(),
     ]);
 
-    const pricing = PricingService.calculateOrderPricing(dto.items, dto.state, products, zones);
+    const pricing = PricingService.calculateOrderPricing(dto.items, dto.state, products, zones, {
+      min_order_tamil_nadu: settings.min_order_tamil_nadu,
+      min_order_other_states: settings.min_order_other_states,
+      state_min_order_overrides: settings.state_min_order_overrides,
+    });
+
+    // Check maximum order limit if enabled
+    if (settings.max_order_limit_enabled && pricing.subtotal > settings.max_order_limit_amount) {
+      throw new Error(
+        `Order exceeds maximum allowed online limit of ₹${settings.max_order_limit_amount.toLocaleString('en-IN')}. For bulk orders, please contact our wholesale team directly.`
+      );
+    }
 
     if (!pricing.isMinOrderMet) {
       throw new Error(
-        `Minimum order required for ${pricing.zoneName} is ₹${pricing.minOrderThreshold.toLocaleString()}. Your subtotal is ₹${pricing.subtotal.toLocaleString()}.`
+        `Minimum order required for ${pricing.zoneName} is ₹${pricing.minOrderThreshold.toLocaleString('en-IN')}. Your subtotal is ₹${pricing.subtotal.toLocaleString('en-IN')}.`
       );
     }
 

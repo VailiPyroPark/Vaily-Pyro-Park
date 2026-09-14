@@ -49,6 +49,19 @@ export default function AdminProductsPage() {
     loadData();
   }, []);
 
+  const handleToggleProductStatus = async (id: string, currentStatus?: boolean) => {
+    try {
+      const active = currentStatus !== false;
+      await ProductService.toggleProductStatus(id, active);
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, is_active: !active } : p))
+      );
+    } catch (err: any) {
+      console.error('Failed to toggle product status:', err);
+      alert(err.message || 'Failed to update product status.');
+    }
+  };
+
   const handleExportProductsCsv = () => {
     if (products.length === 0) return;
 
@@ -341,6 +354,7 @@ export default function AdminProductsPage() {
                       )}
                     </div>
                   </th>
+                  <th className="p-3 sm:p-4 text-center">Status</th>
                   <th className="p-3 sm:p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -380,6 +394,25 @@ export default function AdminProductsPage() {
                         <span className="font-bold text-slate-900 block text-xs sm:text-sm">
                           ₹{product.selling_price.toLocaleString()}
                         </span>
+                      </td>
+                      <td className="p-2.5 sm:p-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleProductStatus(product.id, product.is_active)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition-all border ${
+                            product.is_active !== false
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                          }`}
+                          title="Click to toggle product visibility on storefront"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              product.is_active !== false ? 'bg-emerald-500' : 'bg-slate-400'
+                            }`}
+                          />
+                          <span>{product.is_active !== false ? 'Active' : 'Off'}</span>
+                        </button>
                       </td>
                       <td className="p-2.5 sm:p-4 text-right">
                         <div className="flex items-center justify-end gap-1">

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Printer, CheckCircle2, QrCode } from 'lucide-react';
 import { Order } from '@/types';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 interface PackingSlipModalProps {
   order: Order | null;
@@ -12,6 +13,7 @@ interface PackingSlipModalProps {
 
 export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
   const [mounted, setMounted] = useState(false);
+  const { settings } = useStoreSettings();
 
   useEffect(() => {
     setMounted(true);
@@ -131,7 +133,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
             <div>
               <span className="text-[10px] sm:text-xs print:text-[9.5pt] font-black text-amber-700 uppercase tracking-widest block">
-                VAILI PYRO PARK • SIVAKASI DIRECT WAREHOUSE
+                {(settings?.store_name || 'VAILI PYRO PARK').toUpperCase()} • SIVAKASI DIRECT WAREHOUSE
               </span>
               <h1 className="text-lg sm:text-2xl print:text-[15pt] font-black text-slate-950 tracking-tight mt-0.5">
                 PACKING SLIP & TAX INVOICE
@@ -157,14 +159,14 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
               Dispatched From Warehouse
             </span>
             <span className="font-black text-slate-950 text-sm print:text-[11pt] block">
-              Vaili Pyro Park Main Depot
+              {settings?.store_name || 'Vaili Pyro Park'} Main Depot
             </span>
             <span className="text-slate-700 text-xs print:text-[9.5pt] block leading-relaxed">
-              142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123
+              {settings?.store_address || '142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123'}
             </span>
             <div className="flex items-center gap-3 pt-1 text-xs print:text-[9pt] text-slate-700 font-mono font-bold border-t border-slate-200/80 mt-1">
-              <span>GSTIN: 33AAAFF9012K1Z5</span>
-              <span>Ph: +91 98765 43210</span>
+              <span>GSTIN: {settings?.gstin || '33AAAFF9012K1Z5'}</span>
+              <span>Ph: {settings?.helpline_mobile || '+91 99521 08746'}</span>
             </div>
           </div>
 
@@ -283,11 +285,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
               <div className="flex justify-between">
                 <span>Delivery Freight:</span>
                 <span className="font-mono text-slate-950 font-extrabold">
-                  {order.delivery_fee === 0 ? (
-                    <span className="text-emerald-700 print:text-black font-black">FREE</span>
-                  ) : (
-                    `₹${order.delivery_fee?.toLocaleString('en-IN')}`
-                  )}
+                  ₹{(order.delivery_fee ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between text-sm sm:text-base print:text-[11.5pt] font-black text-slate-950 pt-1.5 border-t-2 border-slate-950">
@@ -301,7 +299,7 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
 
           {/* Terms & Dispatch Signature Line */}
           <div className="flex items-center justify-between text-xs print:text-[9pt] text-slate-500 font-mono pt-1">
-            <span>Thank you for buying from Vaili Pyro Park - Sivakasi Direct Warehouse!</span>
+            <span>Thank you for buying from {settings?.store_name || 'Vaili Pyro Park'} - Sivakasi Direct Warehouse!</span>
             <span className="font-bold text-slate-900">Auth. Dispatch Signature: ________________</span>
           </div>
         </div>

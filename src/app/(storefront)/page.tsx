@@ -13,38 +13,101 @@ import { CartDrawer } from '@/components/storefront/CartDrawer';
 import { Footer } from '@/components/storefront/Footer';
 import { Product, Category, DeliveryZone } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { ProductService } from '@/lib/services/product.service';
 
 export default function StorefrontPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const { settings } = useStoreSettings();
+
+  // Initialize with cached products and categories for instant 0ms first render!
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window !== 'undefined') {
+      return ProductService.getCachedProducts() || [];
+    }
+    return [];
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    if (typeof window !== 'undefined') {
+      return ProductService.getCachedCategories() || [];
+    }
+    return [];
+  });
+  const [zones, setZones] = useState<DeliveryZone[]>(() => {
+    if (typeof window !== 'undefined') {
+      return ProductService.getCachedDeliveryZones() || [];
+    }
+    return [];
+  });
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  // Instant render: If cached products exist, don't block with loading screen
+  const [pageLoading, setPageLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = ProductService.getCachedProducts();
+      return !cached || cached.length === 0;
+    }
+    return true;
+  });
 
   useEffect(() => {
-    async function loadDbData() {
+    let isMounted = true;
+
+    async function loadDbData(force = false) {
       try {
         const [fetchedProducts, fetchedCategories, fetchedZones] = await Promise.all([
-          ProductService.getAllProducts(),
-          ProductService.getCategories(),
-          ProductService.getDeliveryZones(),
+          ProductService.getAllProducts({ forceFresh: force }),
+          ProductService.getCategories({ forceFresh: force }),
+          ProductService.getDeliveryZones({ forceFresh: force }),
         ]);
-        setProducts(fetchedProducts);
-        setCategories(fetchedCategories);
-        setZones(fetchedZones);
+        if (isMounted) {
+          setProducts(fetchedProducts);
+          setCategories(fetchedCategories);
+          setZones(fetchedZones);
+        }
       } catch (e) {
         console.error('Failed to load DB catalog', e);
       } finally {
-        setPageLoading(false);
+        if (isMounted) {
+          setPageLoading(false);
+        }
       }
     }
-    loadDbData();
+
+    // 1. Initial SWR fetch (serves cache if fresh, background revalidates if stale)
+    loadDbData(false);
+
+    // 2. Listen for catalog update events (dispatched by admin changes or cross-tab broadcast)
+    const handleCatalogUpdate = () => {
+      loadDbData(true);
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'vpp_catalog_last_updated') {
+        loadDbData(true);
+      }
+    };
+
+    window.addEventListener('vpp_catalog_updated', handleCatalogUpdate);
+    window.addEventListener('storage', handleStorageChange);
+
+    let broadcastChannel: BroadcastChannel | null = null;
+    if ('BroadcastChannel' in window) {
+      broadcastChannel = new BroadcastChannel('vpp_catalog_channel');
+      broadcastChannel.onmessage = () => {
+        loadDbData(true);
+      };
+    }
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('vpp_catalog_updated', handleCatalogUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+      if (broadcastChannel) broadcastChannel.close();
+    };
   }, []);
 
   useEffect(() => {
@@ -84,9 +147,12 @@ export default function StorefrontPage() {
     }, 0);
   }, [cart]);
 
-  // Filtered products list
+  // Filtered products list (Excludes products turned OFF by admin)
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+      // Hide inactive products from customer view
+      if (product.is_active === false) return false;
+
       const matchesSearch =
         !searchQuery ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,10 +208,39 @@ export default function StorefrontPage() {
           zones={zones}
         />
 
-        <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
-          <h1 className="sr-only">
-            Vaili Pyro Park - Sivakasi Diwali Crackers 2026 Online Booking & Wholesale Factory Price List
-          </h1>
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-4 sm:space-y-5">
+          {/* STOREFRONT HERO PROMOTION BANNER (Replaces text container when enabled; completely hidden when turned off) */}
+          {settings.hero_banner_enabled && (
+            <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-amber-200/90 shadow-2xs group transition-all">
+              <a
+                href={settings.hero_banner_link_url || '#catalog'}
+                className="block relative w-full aspect-[2.1/1] sm:aspect-[2.8/1] overflow-hidden bg-slate-950"
+                title={`${settings.store_name} — Diwali 2026 Pre-Booking Open`}
+              >
+                <img
+                  src={settings.hero_banner_image_url || '/hero-banner.webp'}
+                  alt={`${settings.store_name} Diwali 2026 Sivakasi Crackers Pre-Booking`}
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.src.endsWith('/hero-banner.webp')) {
+                      target.src = '/hero-banner.webp';
+                    }
+                  }}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]"
+                />
+                {/* Subtle Interactive Action Pill Badge on Bottom Right */}
+                <div className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 z-10 flex items-center gap-2">
+                  <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] sm:text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer">
+                    <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                    <span>Browse Price List</span>
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                  </span>
+                </div>
+              </a>
+            </div>
+          )}
 
           {/* MAIN PRODUCT CATALOGUE SECTION WITH CATEGORY CLASSIFICATION HEADERS */}
           <section id="catalog" className="space-y-4">

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { useCart } from '@/context/CartContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { Category, DeliveryZone } from '@/types';
 
 interface HeaderProps {
@@ -42,6 +43,29 @@ export const Header: React.FC<HeaderProps> = ({
   zones = [],
 }) => {
   const { itemCount, subtotal, selectedZone, setSelectedZone, minOrderThreshold, isMinOrderReached } = useCart();
+  const { settings } = useStoreSettings();
+
+  const helplineMobile = settings?.helpline_mobile || '+91 99521 08746';
+  const cleanHelpline = helplineMobile.replace(/[^\d+]/g, '');
+  const whatsappNum = settings?.whatsapp_number || '919952108746';
+  const cleanWhatsapp = whatsappNum.replace(/\D/g, '');
+  const storeName = settings?.store_name || 'Vaili Pyro Park';
+  const tagline = settings?.tagline || 'Direct Factory Outlet • Sivakasi, Tamil Nadu';
+  const storeAddress = settings?.store_address || '142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123';
+  const announcement = settings?.announcement_banner || '⚡ DIWALI PRE-BOOKING OPEN: Sivakasi Factory Direct Rates!';
+
+  // Format WhatsApp number for clear display
+  const formattedWhatsapp = useMemo(() => {
+    const digits = whatsappNum.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+    }
+    if (digits.length === 10) {
+      return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    }
+    return whatsappNum.startsWith('+') ? whatsappNum : `+${whatsappNum}`;
+  }, [whatsappNum]);
+
   const [showZonePicker, setShowZonePicker] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -72,10 +96,10 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs font-sans">
         {/* Streamlined Top Ticker Bar */}
         <div className="bg-amber-100 text-amber-950 px-3 py-1 text-[10px] sm:text-[11px] font-bold border-b border-amber-200/80">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-1">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 min-w-0 pr-2">
               <Sparkles className="w-3 h-3 text-amber-700 shrink-0" />
-              <span className="truncate">Sivakasi Direct Rates</span>
+              <span className="truncate">{announcement}</span>
             </div>
             <span className="font-extrabold text-amber-900 shrink-0">
               Min Order: ₹{minOrderThreshold.toLocaleString()}
@@ -423,21 +447,23 @@ export const Header: React.FC<HeaderProps> = ({
                   Shop Contact &amp; Support:
                 </span>
                 <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  {/* Helpline Mobile */}
                   <a
-                    href="tel:+919952108746"
+                    href={`tel:${cleanHelpline}`}
                     className="flex items-center gap-2.5 p-2.5 bg-white hover:bg-amber-50 text-slate-800 hover:text-amber-900 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
                   >
                     <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-700 flex items-center justify-center shrink-0">
                       <Phone className="w-3.5 h-3.5" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-[10px] text-slate-400 block font-normal">Call Us Directly</span>
-                      <span className="font-mono text-xs">+91 99521 08746</span>
+                      <span className="font-mono text-xs">{helplineMobile}</span>
                     </div>
                   </a>
 
+                  {/* WhatsApp Number & Enquiry */}
                   <a
-                    href="https://wa.me/919952108746?text=Hi%20Vaili%20Pyro%20Park,%20I%20have%20an%20enquiry%20regarding%20fireworks."
+                    href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hi ${storeName}, I have an enquiry regarding fireworks.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
@@ -445,33 +471,50 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
                       <WhatsAppIcon className="w-3.5 h-3.5 fill-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-[10px] text-emerald-700 block font-normal">WhatsApp Enquiry</span>
-                      <span className="text-xs">Chat on WhatsApp</span>
+                      <span className="font-mono text-xs font-bold text-emerald-950">{formattedWhatsapp}</span>
                     </div>
                   </a>
+
+                  {/* Address in Bill (Printed on Bill & Site) */}
+                  <div className="flex items-start gap-2.5 p-2.5 bg-white text-slate-800 border border-slate-200 rounded-xl text-xs shadow-2xs">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] text-slate-400 block font-normal">Warehouse &amp; Bill Address</span>
+                        <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-300/80">Bill Address</span>
+                      </div>
+                      <p className="text-[11px] text-slate-700 font-medium leading-relaxed mt-0.5">
+                        {storeAddress}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Big Floating Logo with Dark Shadow - No Box */}
-            <div className="my-auto py-6 flex items-center justify-center">
-              <div className="relative w-48 h-48 sm:w-52 sm:h-52 flex items-center justify-center transform transition-transform duration-300 hover:scale-105">
+            {/* Floating Logo */}
+            <div className="my-auto py-3 flex items-center justify-center">
+              <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center transform transition-transform duration-300 hover:scale-105">
                 <Image
                   src="/logo.png"
-                  alt="Vaili Pyro Park Brand Logo"
-                  width={220}
-                  height={220}
-                  className="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.35)]"
+                  alt={`${storeName} Brand Logo`}
+                  width={180}
+                  height={180}
+                  className="w-full h-full object-contain filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.30)]"
                   priority
                 />
               </div>
             </div>
 
-            {/* Footer Contact Info */}
+            {/* Footer Contact Info & Address */}
             <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1 mt-2">
-              <span className="font-bold text-slate-800 block">Vaili Pyro Park</span>
-              <span>Direct Factory Outlet • Sivakasi, Tamil Nadu</span>
+              <span className="font-bold text-slate-800 block">{storeName}</span>
+              <p className="text-slate-600 text-[11px] leading-relaxed">{storeAddress}</p>
+              <span className="block text-slate-400 text-[10px]">{tagline}</span>
             </div>
           </div>
         </div>,

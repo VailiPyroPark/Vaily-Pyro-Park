@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/client';
 import { DeliveryZone, OrderItem, Product } from '@/types';
+import { ProductService } from './product.service';
 
 export interface CheckoutPayloadItem {
   product_id: string;
@@ -51,18 +51,12 @@ const FALLBACK_DELIVERY_ZONES: DeliveryZone[] = [
 
 export class PricingService {
   /**
-   * Fetch active delivery zones from DB. Falls back to hardcoded if DB fails.
+   * Fetch active delivery zones (leveraging 60-min cached zones from ProductService).
    */
   static async fetchDeliveryZones(): Promise<DeliveryZone[]> {
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('delivery_zones')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error || !data || data.length === 0) return FALLBACK_DELIVERY_ZONES;
-      return data as DeliveryZone[];
+      const zones = await ProductService.getDeliveryZones();
+      return zones && zones.length > 0 ? zones : FALLBACK_DELIVERY_ZONES;
     } catch {
       return FALLBACK_DELIVERY_ZONES;
     }
@@ -76,12 +70,36 @@ export class PricingService {
     clientItems: CheckoutPayloadItem[],
     stateCode: string,
     products: Product[] = [],
-    zones: DeliveryZone[] = FALLBACK_DELIVERY_ZONES
+    zones: DeliveryZone[] = FALLBACK_DELIVERY_ZONES,
+    customSettings?: {
+      min_order_tamil_nadu?: number;
+      min_order_other_states?: number;
+      state_min_order_overrides?: Record<string, number>;
+    }
   ): CalculatedPricingResult {
+    const isTamilNadu =
+      stateCode.trim().toLowerCase() === 'tn' ||
+      stateCode.trim().toLowerCase() === 'tamil nadu';
+
     const zone =
       zones.find((z) =>
         z.state_codes.some((code) => code.toLowerCase() === stateCode.toLowerCase())
       ) ?? zones[zones.length - 1];
+
+    // Determine effective minimum order threshold
+    let minOrderThreshold = zone.min_order_amount;
+
+    if (customSettings) {
+      const stateOverride = customSettings.state_min_order_overrides?.[stateCode];
+      if (typeof stateOverride === 'number' && stateOverride > 0) {
+        minOrderThreshold = stateOverride;
+      } else if (isTamilNadu && typeof customSettings.min_order_tamil_nadu === 'number' && customSettings.min_order_tamil_nadu > 0) {
+        minOrderThreshold = customSettings.min_order_tamil_nadu;
+      } else if (!isTamilNadu && typeof customSettings.min_order_other_states === 'number' && customSettings.min_order_other_states > 0) {
+        // If zone has its own DB amount, honor it unless default other states applies
+        minOrderThreshold = zone.id === 'zone-south' ? zone.min_order_amount : customSettings.min_order_other_states;
+      }
+    }
 
     let subtotal = 0;
     let totalMrp = 0;
@@ -111,7 +129,7 @@ export class PricingService {
       });
     }
 
-    const isMinOrderMet = subtotal >= zone.min_order_amount;
+    const isMinOrderMet = subtotal >= minOrderThreshold;
     const deliveryFee = isMinOrderMet ? zone.delivery_fee : 0;
     const discountAmount = Math.max(0, totalMrp - subtotal);
     const grandTotal = subtotal + deliveryFee;
@@ -123,9 +141,9 @@ export class PricingService {
       discountAmount,
       deliveryFee,
       grandTotal,
-      minOrderThreshold: zone.min_order_amount,
+      minOrderThreshold,
       isMinOrderMet,
-      zoneName: zone.zone_name,
+      zoneName: isTamilNadu ? 'Tamil Nadu' : zone.zone_name,
     };
   }
 }

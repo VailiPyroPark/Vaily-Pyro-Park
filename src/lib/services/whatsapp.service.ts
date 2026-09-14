@@ -75,7 +75,7 @@ ${itemsList}
 
 *Financial Summary:*
 • Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}
-• Delivery Fee: ${order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}
+• Delivery Fee: ₹${(order.delivery_fee ?? 0).toLocaleString('en-IN')}
 • *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*
 
 📍 *Shipping Address:*
@@ -171,25 +171,38 @@ ${trackingUrl}
   /**
    * Backward-compatible store order link generator for storefront confirmation
    */
-  public static generateOrderWhatsAppLink(order: Order, storePhoneNumber: string = '919952108746'): string {
+  public static generateOrderWhatsAppLink(
+    order: Order,
+    storePhoneNumber: string = '919952108746',
+    storeName: string = 'Vaili Pyro Park'
+  ): string {
+    const cleanPhone = (storePhoneNumber || '919952108746').replace(/\D/g, '');
+    const activeStoreName = storeName || 'Vaili Pyro Park';
     const itemsList = order.items && order.items.length > 0
       ? order.items.map((i) => `• ${i.product_name} - ${i.quantity} ${i.quantity === 1 ? 'Pc' : 'Pcs'} - ₹${i.total_price.toLocaleString('en-IN')}`).join('\n')
       : '';
 
-    const text = `🎆 *NEW CRACKER ORDER: ${order.order_number}* 🎆\n\n*Customer Details:*\n• Name: ${order.customer_name}\n• Phone: ${order.customer_mobile}\n• Shipping Address: ${order.shipping_address}, ${order.city}, ${order.state} - ${order.pincode}\n\n*Ordered Items:*\n${itemsList}\n\n*Financial Summary:*\n• Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\n• Delivery Fee: ${order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}\n• *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*\n\nThank you for choosing Vaili Pyro Park! Please confirm dispatch timeline.`;
+    const text = `🎆 *NEW CRACKER ORDER: ${order.order_number}* 🎆\n\n*Customer Details:*\n• Name: ${order.customer_name}\n• Phone: ${order.customer_mobile}\n• Shipping Address: ${order.shipping_address}, ${order.city}, ${order.state} - ${order.pincode}\n\n*Ordered Items:*\n${itemsList}\n\n*Financial Summary:*\n• Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\n• Delivery Fee: ₹${(order.delivery_fee ?? 0).toLocaleString('en-IN')}\n• *Grand Total: ₹${order.grand_total.toLocaleString('en-IN')}*\n\nThank you for choosing ${activeStoreName}! Please confirm dispatch timeline.`;
 
     const encoded = encodeURIComponent(text);
-    return `https://wa.me/${storePhoneNumber}?text=${encoded}`;
+    return `https://wa.me/${cleanPhone}?text=${encoded}`;
   }
 
   /**
    * Customer support inquiry WhatsApp link (e.g. for dispatched order inquiries or general order lookup help)
    */
-  public static generateSupportWhatsAppLink(order?: Order | null, message?: string, storePhoneNumber: string = '919952108746'): string {
+  public static generateSupportWhatsAppLink(
+    order?: Order | null,
+    message?: string,
+    storePhoneNumber: string = '919952108746',
+    storeName: string = 'Vaili Pyro Park'
+  ): string {
+    const cleanPhone = (storePhoneNumber || '919952108746').replace(/\D/g, '');
+    const activeStoreName = storeName || 'Vaili Pyro Park';
     const text = message || (order
-      ? `Hi Vaili Pyro Park team, I am inquiring regarding my order *#${order.order_number}* (Customer: ${order.customer_name}). Current status: ${order.status}. Could you please assist me?`
-      : `Hi Vaili Pyro Park team, I need help locating my fireworks order. Could you please assist me?`);
+      ? `Hi ${activeStoreName} team, I am inquiring regarding my order *#${order.order_number}* (Customer: ${order.customer_name}). Current status: ${order.status}. Could you please assist me?`
+      : `Hi ${activeStoreName} team, I need help locating my fireworks order. Could you please assist me?`);
     const encoded = encodeURIComponent(text);
-    return `https://wa.me/${storePhoneNumber}?text=${encoded}`;
+    return `https://wa.me/${cleanPhone}?text=${encoded}`;
   }
 }

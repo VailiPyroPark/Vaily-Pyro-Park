@@ -2,16 +2,86 @@ import React from 'react';
 import { getSiteUrl } from '@/lib/constants/site';
 
 export const JsonLd: React.FC = () => {
-  const siteUrl = getSiteUrl();
+  const siteUrl = getSiteUrl().replace(/\/$/, '');
+  const canonicalUrl = `${siteUrl}/`;
 
+  // 1. WebSite Schema (Official Google format to establish site name and Sitelinks Search Box)
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${siteUrl}/#website`,
+    name: 'Vaili Pyro Park',
+    alternateName: [
+      'Vaili Pyro Park Sivakasi',
+      'VPP Sivakasi',
+      'Vaili Crackers',
+      'Vaili Pyro Park Online Crackers',
+      'வைலி பைரோ பார்க்',
+    ],
+    url: canonicalUrl,
+    inLanguage: ['en-IN', 'ta-IN'],
+    description:
+      'Official website of Vaili Pyro Park, Sivakasi. Buy genuine Diwali crackers and fireworks online at direct factory wholesale rates with doorstep delivery across India.',
+    publisher: {
+      '@id': `${siteUrl}/#organization`,
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${siteUrl}/?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  // 2. Organization Schema (Establishes brand identity, logo, and verified contact points)
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
+    name: 'Vaili Pyro Park',
+    legalName: 'Vaili Pyro Park Fireworks',
+    alternateName: ['வைலி பைரோ பார்க்', 'VPP'],
+    url: canonicalUrl,
+    logo: `${siteUrl}/logo.png`,
+    image: `${siteUrl}/og-image.png`,
+    description:
+      'Licensed Sivakasi fireworks manufacturer and direct factory outlet offering Diwali crackers online with wholesale transparent pricing.',
+    telephone: '+91-99521-08746',
+    email: 'support@vailipyropark.com',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '142/A Bypass Road, Sivakasi Industrial Estate',
+      addressLocality: 'Sivakasi',
+      addressRegion: 'Tamil Nadu',
+      postalCode: '626123',
+      addressCountry: 'IN',
+    },
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: '+91-99521-08746',
+        contactType: 'customer service',
+        areaServed: 'IN',
+        availableLanguage: ['en', 'ta'],
+      },
+    ],
+  };
+
+  // 3. Store / LocalBusiness Schema (For local map and store search snippets)
   const storeSchema = {
     '@context': 'https://schema.org',
     '@type': 'Store',
+    '@id': `${siteUrl}/#store`,
     name: 'Vaili Pyro Park',
     alternateName: ['வைலி பைரோ பார்க்', 'VPP Sivakasi Fireworks'],
-    url: siteUrl,
+    url: canonicalUrl,
     logo: `${siteUrl}/logo.png`,
-    image: `${siteUrl}/logo.png`,
+    image: `${siteUrl}/og-image.png`,
+    parentOrganization: {
+      '@id': `${siteUrl}/#organization`,
+    },
     description:
       'Direct Sivakasi factory prices on Diwali crackers, sparklers, ground chakkars, flower pots, rockets, fancy aerial shots & gift boxes. Fast doorstep delivery across Tamil Nadu & India.',
     telephone: '+91-99521-08746',
@@ -20,7 +90,7 @@ export const JsonLd: React.FC = () => {
     paymentAccepted: 'Cash on Delivery, UPI, Net Banking, Bank Transfer',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Direct Factory Outlet, Sivakasi',
+      streetAddress: '142/A Bypass Road, Sivakasi Industrial Estate',
       addressLocality: 'Sivakasi',
       addressRegion: 'Tamil Nadu',
       postalCode: '626123',
@@ -49,22 +119,76 @@ export const JsonLd: React.FC = () => {
     ],
   };
 
-  const websiteSchema = {
+  // 4. SiteNavigationElement Schema (Enables Google Rich Sitelinks in Search)
+  const navigationSchema = {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Vaili Pyro Park',
-    alternateName: 'வைலி பைரோ பார்க்',
-    url: siteUrl,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/?q={search_term_string}`,
+    '@type': 'ItemList',
+    itemListElement: [
+      {
+        '@type': 'SiteNavigationElement',
+        position: 1,
+        name: 'Fireworks Price List 2026',
+        description: 'Direct factory wholesale price list of Sivakasi crackers with instant quick-add ordering.',
+        url: `${siteUrl}/#catalog`,
       },
-      'query-input': 'required name=search_term_string',
-    },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 2,
+        name: 'Track Your Order',
+        description: 'Real-time live parcel tracking for your booked Sivakasi fireworks.',
+        url: `${siteUrl}/track-order`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 3,
+        name: 'Sparklers & Chakkars',
+        description: 'Standard electric sparklers, color sparklers, and ground chakkars.',
+        url: `${siteUrl}/#catalog`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 4,
+        name: 'Flower Pots & Fountains',
+        description: 'Colorful flower pots, giant fountains, and crackling sparkle pots.',
+        url: `${siteUrl}/#catalog`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 5,
+        name: 'Fancy Aerial Shots & Sky Rockets',
+        description: 'Multi-color repeater aerial shots, sound rockets, and night sky fancy crackers.',
+        url: `${siteUrl}/#catalog`,
+      },
+    ],
   };
 
+  // 5. BreadcrumbList Schema (Produces clean breadcrumb links in search results)
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: canonicalUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Diwali Crackers Catalog 2026',
+        item: `${siteUrl}/#catalog`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: 'Order Tracking',
+        item: `${siteUrl}/track-order`,
+      },
+    ],
+  };
+
+  // 6. FAQPage Schema (Enables expandable FAQ Rich Snippets in Google Search)
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -82,7 +206,7 @@ export const JsonLd: React.FC = () => {
         name: 'What is the minimum order value for Sivakasi crackers delivery?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The minimum order requirements are: Tamil Nadu: ₹3,000; South Indian states (Karnataka, Kerala, Andhra Pradesh, Telangana): ₹4,000; Rest of India: ₹5,000.',
+          text: 'The minimum order requirement for Tamil Nadu (Home State) is ₹3,000, and for other Indian states is ₹5,000. All orders include safe packing and direct lorry transport dispatch from Sivakasi.',
         },
       },
       {
@@ -98,7 +222,7 @@ export const JsonLd: React.FC = () => {
         name: 'How can I track my Sivakasi crackers order?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'You can easily check your delivery status on our dedicated Track Order page anytime by entering your Order ID or phone number.',
+          text: 'You can easily check your delivery status on our dedicated Track Order page anytime by entering your Order ID or 10-digit phone number.',
         },
       },
     ],
@@ -108,11 +232,23 @@ export const JsonLd: React.FC = () => {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(storeSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(navigationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <script
         type="application/ld+json"

@@ -26,6 +26,7 @@ import {
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { OrderService } from '@/lib/services/order.service';
 import { WhatsAppService } from '@/lib/services/whatsapp.service';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { OrderTimeline } from '@/components/common/OrderTimeline';
 import { CancelOrderModal } from '@/components/common/CancelOrderModal';
 import { Order, OrderStatus } from '@/types';
@@ -74,6 +75,7 @@ function getStatusBadge(status: OrderStatus) {
 function TrackOrderContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('id') || searchParams.get('order') || searchParams.get('phone') || '';
+  const { settings } = useStoreSettings();
 
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchedOrder, setSearchedOrder] = useState<Order | null>(null);
@@ -373,7 +375,7 @@ function TrackOrderContent() {
                     </p>
                   </div>
                   <a
-                    href={WhatsAppService.generateSupportWhatsAppLink(searchedOrder)}
+                    href={WhatsAppService.generateSupportWhatsAppLink(searchedOrder, undefined, settings?.whatsapp_number, settings?.store_name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3.5 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs rounded-xl flex items-center gap-1.5 shrink-0 transition-all shadow-xs cursor-pointer"
@@ -395,7 +397,7 @@ function TrackOrderContent() {
                 </Link>
 
                 <a
-                  href={WhatsAppService.generateOrderWhatsAppLink(searchedOrder)}
+                  href={WhatsAppService.generateOrderWhatsAppLink(searchedOrder, settings?.whatsapp_number, settings?.store_name)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2.5 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-98 cursor-pointer"

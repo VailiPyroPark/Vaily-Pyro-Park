@@ -35,6 +35,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [description, setDescription] = useState('');
   const [isBestSeller, setIsBestSeller] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [discountPercent, setDiscountPercent] = useState<number>(80);
@@ -73,6 +74,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setInitialImageUrl(productToEdit.image_url || '');
       setDescription(productToEdit.description || '');
       setIsBestSeller(Boolean(productToEdit.is_best_seller));
+      setIsActive(productToEdit.is_active !== undefined ? Boolean(productToEdit.is_active) : true);
       setSelectedFile(null);
       setPreviewUrl('');
     } else {
@@ -89,6 +91,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setInitialImageUrl('');
       setDescription('');
       setIsBestSeller(false);
+      setIsActive(true);
       setSelectedFile(null);
       setPreviewUrl('');
       setIsManualPriceOverride(false);
@@ -184,7 +187,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         sound_level: soundLevel,
         image_url: finalImageUrl || undefined,
         description: description.trim() || `Direct Sivakasi ${name} crackers with factory guarantee.`,
-        is_active: true,
+        is_active: isActive,
         is_featured: false,
         is_best_seller: isBestSeller,
       };
@@ -449,6 +452,45 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </label>
               </div>
             </div>
+          </div>
+
+          {/* Product Visibility Toggle (Turn On / Off) */}
+          <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-xs text-slate-900 block">
+                  Product Visibility (User Side)
+                </span>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                    isActive
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-rose-100 text-rose-800 border border-rose-300'
+                  }`}
+                >
+                  {isActive ? 'ACTIVE / VISIBLE' : 'OFF / HIDDEN'}
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 block">
+                {isActive
+                  ? 'Turned ON — Visible to customers in catalog & shop'
+                  : 'Turned OFF — Completely hidden from customers on storefront'}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsActive(!isActive)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isActive ? 'bg-emerald-500' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  isActive ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Action Buttons */}

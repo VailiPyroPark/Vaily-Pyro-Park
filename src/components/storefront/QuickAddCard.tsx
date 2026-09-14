@@ -44,8 +44,15 @@ export const QuickAddCard: React.FC<QuickAddCardProps> = ({ product, onQuickView
         <img
           src={product.image_url || '/logo.png'}
           alt={product.name}
-          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-2.5'} group-hover:scale-105 transition-transform duration-300`}
           loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith('/logo.png')) {
+              target.src = '/logo.png';
+            }
+          }}
+          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-2.5'} group-hover:scale-105 transition-transform duration-300`}
         />
 
         {/* Discount & Bestseller Badges */}

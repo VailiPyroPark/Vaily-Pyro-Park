@@ -8,6 +8,7 @@ import { CheckCircle2, Package, ArrowRight, Truck, MapPin, Calendar, Clock, Shop
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { OrderService } from '@/lib/services/order.service';
 import { WhatsAppService } from '@/lib/services/whatsapp.service';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { OrderTimeline } from '@/components/common/OrderTimeline';
 import { CancelOrderModal } from '@/components/common/CancelOrderModal';
 import { Order, OrderStatus } from '@/types';
@@ -15,6 +16,7 @@ import { Order, OrderStatus } from '@/types';
 export default function OrderConfirmationPage() {
   const params = useParams();
   const orderId = params.id as string;
+  const { settings } = useStoreSettings();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,11 @@ export default function OrderConfirmationPage() {
     );
   }
 
-  const whatsappUrl = WhatsAppService.generateOrderWhatsAppLink(order);
+  const whatsappUrl = WhatsAppService.generateOrderWhatsAppLink(
+    order,
+    settings?.whatsapp_number,
+    settings?.store_name
+  );
 
   // Status Stepper calculation
   const statusSteps: { status: OrderStatus; label: string }[] = [
@@ -180,7 +186,7 @@ export default function OrderConfirmationPage() {
               </p>
             </div>
             <a
-              href={WhatsAppService.generateSupportWhatsAppLink(order)}
+              href={WhatsAppService.generateSupportWhatsAppLink(order, undefined, settings?.whatsapp_number, settings?.store_name)}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs rounded-xl flex items-center gap-1.5 shrink-0 shadow-xs"
@@ -215,7 +221,7 @@ export default function OrderConfirmationPage() {
                   {order.status}
                 </span>
               </p>
-              <p className="text-slate-700">Store Hub: Vaili Pyro Park, Sivakasi</p>
+              <p className="text-slate-700">Store Hub: {settings?.store_name || 'Vaili Pyro Park'}, Sivakasi</p>
             </div>
           </div>
 
@@ -249,8 +255,8 @@ export default function OrderConfirmationPage() {
             )}
             <div className="flex justify-between">
               <span>Delivery Fee:</span>
-              <span className="font-bold text-slate-900">
-                {order.delivery_fee === 0 ? 'FREE' : `₹${order.delivery_fee.toLocaleString('en-IN')}`}
+              <span className="font-bold text-slate-900 font-mono">
+                ₹{(order.delivery_fee ?? 0).toLocaleString('en-IN')}
               </span>
             </div>
             <div className="flex justify-between text-base font-black text-slate-950 pt-2 border-t border-slate-200">

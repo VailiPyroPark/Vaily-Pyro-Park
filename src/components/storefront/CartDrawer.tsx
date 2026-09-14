@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface CartDrawerProps {
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const [itemToRemove, setItemToRemove] = useState<{ id: string; name: string; imageUrl?: string } | null>(null);
+  const { settings } = useStoreSettings();
 
   const {
     cart,
@@ -29,6 +31,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   } = useCart();
 
   if (!isOpen) return null;
+
+  const isMaxLimitExceeded = Boolean(
+    settings?.max_order_limit_enabled &&
+    settings?.max_order_limit_amount &&
+    subtotal > settings.max_order_limit_amount
+  );
 
   const progressPercent = Math.min(100, Math.round((subtotal / minOrderThreshold) * 100));
 
@@ -221,17 +229,35 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 )}
                 <div className="flex justify-between">
                   <span>Delivery ({cleanZoneName}):</span>
-                  <span className="font-bold text-slate-900">
-                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+                  <span className="font-bold text-slate-900 font-mono">
+                    ₹{deliveryFee}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-extrabold text-slate-950 pt-2 border-t border-slate-200">
                   <span>Grand Total:</span>
-                  <span className="text-amber-600">₹{grandTotal.toLocaleString()}</span>
+                  <span className="text-amber-600 font-mono">₹{grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 
-              {isMinOrderReached ? (
+              {/* Maximum Order Limit Warning */}
+              {isMaxLimitExceeded && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-950 font-bold flex items-start gap-2 shadow-2xs">
+                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <div className="leading-snug">
+                    Cart total exceeds maximum online limit of ₹{settings?.max_order_limit_amount.toLocaleString('en-IN')}. For bulk purchases, please contact us directly on WhatsApp.
+                  </div>
+                </div>
+              )}
+
+              {isMaxLimitExceeded ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full py-3.5 bg-slate-200 text-slate-500 font-extrabold rounded-2xl flex items-center justify-center gap-2 text-xs cursor-not-allowed border border-slate-300"
+                >
+                  <span>MAXIMUM LIMIT EXCEEDED</span>
+                </button>
+              ) : isMinOrderReached ? (
                 <Link
                   href="/checkout"
                   onClick={onClose}

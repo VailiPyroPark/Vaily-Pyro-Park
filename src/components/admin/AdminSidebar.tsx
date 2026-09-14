@@ -17,8 +17,11 @@ import {
   X,
   Zap,
   Percent,
+  Settings,
+  Image as ImageLucide,
 } from 'lucide-react';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 interface AdminSidebarProps {
   userEmail: string;
@@ -29,13 +32,16 @@ interface AdminSidebarProps {
 export function AdminSidebar({ userEmail, onSignOutClick, onNavClick }: AdminSidebarProps) {
   const pathname = usePathname();
   const { unreadCount } = useAdminNotification();
+  const { settings } = useStoreSettings();
 
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
     { href: '/admin/products', label: 'Products', icon: Package },
+    { href: '/admin/banners', label: 'Hero Banner', icon: ImageLucide },
     { href: '/admin/categories', label: 'Categories', icon: SlidersHorizontal },
     { href: '/admin/discount', label: 'Discount', icon: Percent },
+    { href: '/admin/settings', label: 'Settings', icon: Settings },
     { href: '/admin/notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
     { href: '/admin/profile', label: 'Profile', icon: User },
   ];
@@ -45,17 +51,17 @@ export function AdminSidebar({ userEmail, onSignOutClick, onNavClick }: AdminSid
       <div>
         {/* Brand Header */}
         <div className="pb-4 border-b border-slate-100 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <Image
               src="/logo.png"
-              alt="Vaili Pyro Park Logo"
+              alt={`${settings.store_name} Logo`}
               width={36}
               height={36}
               className="w-9 h-9 object-contain shrink-0"
             />
-            <div>
-              <span className="font-bold text-sm text-slate-900 tracking-tight block">
-                Vaili Pyro Park
+            <div className="min-w-0">
+              <span className="font-bold text-sm text-slate-900 tracking-tight block truncate max-w-[140px]" title={settings.store_name}>
+                {settings.store_name}
               </span>
               <span className="text-[10px] text-amber-600 font-semibold uppercase tracking-wider block -mt-0.5">
                 Admin Panel

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Poppins } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { StoreSettingsProvider } from '@/context/StoreSettingsContext';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getSiteUrl } from '@/lib/constants/site';
 
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     template: '%s | Vaili Pyro Park',
   },
   description:
-    'Buy genuine Sivakasi Diwali crackers, sparklers, ground chakkars, flower pots, rockets, fancy aerial shots & gift boxes at direct factory rates. Instant order booking and quick delivery across Tamil Nadu & India.',
+    'Buy genuine Sivakasi Diwali crackers 2026 at direct factory rates. Sparklers, chakkars, pots, aerial shots & gift boxes. Fast doorstep delivery across India.',
   keywords: [
     'Online Crackers Sivakasi',
     'Sivakasi Fireworks Price List 2026',
@@ -56,27 +57,32 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   verification: {
     google: 'mQP3pW7ATHeb8mBTwBKOXMlo1s4YHkSGbsI7uFdTFc0',
   },
   openGraph: {
-    title: 'Vaili Pyro Park | Sivakasi Diwali Crackers Online 2026',
+    title: 'Vaili Pyro Park | Buy Sivakasi Diwali Crackers Online 2026',
     description:
-      'Buy genuine Sivakasi Diwali fireworks at direct factory prices. Instant quick-add ordering, authentic quality, and safe home delivery across Tamil Nadu and India.',
+      'Buy genuine Sivakasi Diwali crackers 2026 at direct factory rates. Sparklers, chakkars, pots, aerial shots & gift boxes with safe doorstep delivery.',
     url: siteUrl,
     siteName: 'Vaili Pyro Park',
     locale: 'en_IN',
     type: 'website',
     images: [
       {
-        url: '/logo.png',
-        width: 800,
-        height: 800,
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
         alt: 'Vaili Pyro Park Sivakasi Fireworks & Crackers',
       },
     ],
@@ -85,8 +91,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Vaili Pyro Park | Buy Sivakasi Diwali Crackers Online 2026',
     description:
-      'Genuine Sivakasi fireworks at factory direct rates. Sparklers, chakkars, pots, rockets & gift boxes with instant tracking.',
-    images: ['/logo.png'],
+      'Genuine Sivakasi fireworks at direct factory rates. Sparklers, chakkars, pots, rockets & gift boxes with instant tracking.',
+    images: ['/og-image.png'],
     creator: '@VailiPyroPark',
   },
   robots: {
@@ -110,10 +116,20 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plusJakarta.variable} ${poppins.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="application-name" content="Vaili Pyro Park" />
+        <meta name="apple-mobile-web-app-title" content="Vaili Pyro Park" />
+        <meta property="og:site_name" content="Vaili Pyro Park" />
         <JsonLd />
       </head>
       <body className="font-sans antialiased text-slate-900 bg-slate-50 min-h-screen" suppressHydrationWarning>
-        <CartProvider>{children}</CartProvider>
+        <StoreSettingsProvider>
+          <CartProvider>{children}</CartProvider>
+        </StoreSettingsProvider>
       </body>
     </html>
   );

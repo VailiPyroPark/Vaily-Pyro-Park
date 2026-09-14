@@ -33,8 +33,14 @@ export function AdminNavbar({
         return 'Orders';
       case '/admin/products':
         return 'Products';
+      case '/admin/banners':
+        return 'Hero Banner';
       case '/admin/categories':
         return 'Categories';
+      case '/admin/discount':
+        return 'Global Discount';
+      case '/admin/settings':
+        return 'Store Settings';
       case '/admin/notifications':
         return 'Notifications';
       case '/admin/profile':

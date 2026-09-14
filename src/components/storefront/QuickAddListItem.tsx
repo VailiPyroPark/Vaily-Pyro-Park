@@ -44,8 +44,15 @@ export const QuickAddListItem: React.FC<QuickAddListItemProps> = ({ product, onQ
         <img
           src={product.image_url || '/logo.png'}
           alt={product.name}
-          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1.5'} group-hover:scale-105 transition-transform duration-200`}
           loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith('/logo.png')) {
+              target.src = '/logo.png';
+            }
+          }}
+          className={`w-full h-full ${product.image_url ? 'object-cover' : 'object-contain p-1.5'} group-hover:scale-105 transition-transform duration-200`}
         />
         {discountPercent > 0 && (
           <span className="absolute top-1 left-1 bg-gradient-to-r from-red-600 to-rose-500 text-white font-black text-[9px] px-1.5 py-0.3 rounded-md uppercase shadow-2xs">

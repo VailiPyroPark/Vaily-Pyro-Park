@@ -204,8 +204,8 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
               <tr>
                 <th className="p-2.5 print:p-2 border-r border-slate-300 w-10 text-center">#</th>
                 <th className="p-2.5 print:p-2 border-r border-slate-300">Item Description</th>
-                <th className="p-2.5 print:p-2 text-right border-r border-slate-300 w-28 print:w-24">Unit Price</th>
                 <th className="p-2.5 print:p-2 text-center border-r border-slate-300 w-16 print:w-14">Qty</th>
+                <th className="p-2.5 print:p-2 text-right border-r border-slate-300 w-28 print:w-24">Unit Price</th>
                 <th className="p-2.5 print:p-2 text-right w-28 print:w-24">Total Amount</th>
               </tr>
             </thead>
@@ -218,11 +218,11 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
                   <td className="p-2 print:p-1.5 font-extrabold text-slate-950 border-r border-slate-200 text-xs print:text-[10pt]">
                     {item.product_name}
                   </td>
-                  <td className="p-2 print:p-1.5 text-right text-slate-700 font-mono border-r border-slate-200 text-xs print:text-[10pt]">
-                    ₹{item.unit_price.toLocaleString('en-IN')}
-                  </td>
                   <td className="p-2 print:p-1.5 text-center font-black text-slate-950 border-r border-slate-200 bg-amber-50/40 print:bg-transparent text-xs print:text-[10pt]">
                     {item.quantity}
+                  </td>
+                  <td className="p-2 print:p-1.5 text-right text-slate-700 font-mono border-r border-slate-200 text-xs print:text-[10pt]">
+                    ₹{item.unit_price.toLocaleString('en-IN')}
                   </td>
                   <td className="p-2 print:p-1.5 text-right font-black text-slate-950 font-mono text-xs print:text-[10pt]">
                     ₹{item.total_price.toLocaleString('en-IN')}

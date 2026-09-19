@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Printer, CheckCircle2, QrCode } from 'lucide-react';
+import { X, Printer } from 'lucide-react';
 import { Order } from '@/types';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 
@@ -241,39 +241,11 @@ export function PackingSlipModal({ order, onClose }: PackingSlipModalProps) {
           </div>
         </div>
 
-        {/* Bottom Section: Financial Totals + Inspection & Signature */}
+        {/* Bottom Section: Financial Totals + Terms & Signature */}
         <div className="space-y-4 pt-2 print-keep-together">
-          <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 items-end pt-2 border-t-2 border-slate-900">
-            {/* Quality Inspection & QR Code */}
-            <div className="bg-slate-50 p-3 print:p-2.5 rounded-2xl print:rounded-xl border border-slate-300 flex items-center justify-between gap-3">
-              <div className="space-y-1">
-                <span className="text-[10px] print:text-[8.5pt] font-black text-slate-500 uppercase tracking-wider block">
-                  Warehouse Quality & Safety Inspection
-                </span>
-                <div className="flex items-center gap-2.5 text-xs print:text-[9pt] font-black text-slate-800 flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 print:w-3.5 print:h-3.5 text-emerald-600 print:text-black shrink-0" /> Count Verified
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 print:w-3.5 print:h-3.5 text-emerald-600 print:text-black shrink-0" /> Waterproof
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 print:w-3.5 print:h-3.5 text-emerald-600 print:text-black shrink-0" /> Caution Labeled
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 border-l border-slate-300 pl-3 shrink-0">
-                <QrCode className="w-8 h-8 print:w-7 print:h-7 text-slate-950" />
-                <div className="text-[9px] print:text-[8pt] font-mono text-slate-600">
-                  <div className="font-bold text-slate-500">VERIFY</div>
-                  <div className="font-black text-slate-950 text-xs print:text-[10pt]">{order.order_number}</div>
-                </div>
-              </div>
-            </div>
-
+          <div className="flex justify-end pt-2 border-t-2 border-slate-900">
             {/* Financial Totals Breakdown */}
-            <div className="space-y-1 text-xs print:text-[10pt] text-slate-700 font-bold bg-slate-50 p-3 print:p-2.5 rounded-2xl print:rounded-xl border border-slate-300">
+            <div className="w-full sm:max-w-xs print:max-w-xs space-y-1 text-xs print:text-[10pt] text-slate-700 font-bold bg-slate-50 p-3 print:p-2.5 rounded-2xl print:rounded-xl border border-slate-300">
               <div className="flex justify-between">
                 <span>Items Subtotal:</span>
                 <span className="font-mono text-slate-950 font-extrabold">₹{order.subtotal?.toLocaleString('en-IN')}</span>

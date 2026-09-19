@@ -19,6 +19,7 @@ import {
   Percent,
   Settings,
   Image as ImageLucide,
+  Receipt,
 } from 'lucide-react';
 import { useAdminNotification } from '@/context/AdminNotificationContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
@@ -37,6 +38,7 @@ export function AdminSidebar({ userEmail, onSignOutClick, onNavClick }: AdminSid
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+    { href: '/admin/billing', label: 'Billing / POS', icon: Receipt },
     { href: '/admin/products', label: 'Products', icon: Package },
     { href: '/admin/banners', label: 'Hero Banner', icon: ImageLucide },
     { href: '/admin/categories', label: 'Categories', icon: SlidersHorizontal },

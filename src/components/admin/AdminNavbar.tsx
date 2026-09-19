@@ -31,6 +31,8 @@ export function AdminNavbar({
         return 'Dashboard';
       case '/admin/orders':
         return 'Orders';
+      case '/admin/billing':
+        return 'Billing & POS';
       case '/admin/products':
         return 'Products';
       case '/admin/banners':

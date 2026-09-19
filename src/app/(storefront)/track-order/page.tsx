@@ -22,6 +22,7 @@ import {
   Phone,
   ShieldCheck,
   Building2,
+  Printer,
 } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { OrderService } from '@/lib/services/order.service';
@@ -29,6 +30,7 @@ import { WhatsAppService } from '@/lib/services/whatsapp.service';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { OrderTimeline } from '@/components/common/OrderTimeline';
 import { CancelOrderModal } from '@/components/common/CancelOrderModal';
+import { PackingSlipModal } from '@/components/admin/orders/PackingSlipModal';
 import { Order, OrderStatus } from '@/types';
 
 function getStatusBadge(status: OrderStatus) {
@@ -84,6 +86,7 @@ function TrackOrderContent() {
   const [successMsg, setSuccessMsg] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isPackingSlipOpen, setIsPackingSlipOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
   // Auto-search if URL contains query parameter
@@ -388,11 +391,20 @@ function TrackOrderContent() {
 
               {/* Action Buttons Bar */}
               <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsPackingSlipOpen(true)}
+                  className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-98 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Bill</span>
+                </button>
+
                 <Link
                   href={`/order-confirmation/${searchedOrder.id}`}
                   className="flex-1 py-2.5 px-4 bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-98 cursor-pointer"
                 >
-                  <span>View Full Order Invoice</span>
+                  <span>View Full Order Details</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
 
@@ -426,6 +438,14 @@ function TrackOrderContent() {
                 isOpen={isCancelModalOpen}
                 onClose={() => setIsCancelModalOpen(false)}
                 onConfirmCancel={handleConfirmCancel}
+              />
+            )}
+
+            {/* Packing Slip & Bill Modal */}
+            {isPackingSlipOpen && (
+              <PackingSlipModal
+                order={searchedOrder}
+                onClose={() => setIsPackingSlipOpen(false)}
               />
             )}
           </div>

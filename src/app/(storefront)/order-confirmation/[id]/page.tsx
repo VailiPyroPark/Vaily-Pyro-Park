@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, Package, ArrowRight, Truck, MapPin, Calendar, Clock, ShoppingBag, Ban, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Package, ArrowRight, Truck, MapPin, Calendar, Clock, ShoppingBag, Ban, AlertCircle, Printer } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import { OrderService } from '@/lib/services/order.service';
 import { WhatsAppService } from '@/lib/services/whatsapp.service';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { OrderTimeline } from '@/components/common/OrderTimeline';
 import { CancelOrderModal } from '@/components/common/CancelOrderModal';
+import { PackingSlipModal } from '@/components/admin/orders/PackingSlipModal';
 import { Order, OrderStatus } from '@/types';
 
 export default function OrderConfirmationPage() {
@@ -21,6 +22,7 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isPackingSlipOpen, setIsPackingSlipOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
@@ -144,17 +146,25 @@ export default function OrderConfirmationPage() {
               Your order has been received! We will prepare and pack your items soon.
             </p>
 
-            {/* Primary Action Button: Send to WhatsApp */}
-            <div className="pt-2">
+            {/* Primary Action Buttons: WhatsApp & Print Bill */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-sm shadow-xl transition-all active:scale-98"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black rounded-2xl text-sm shadow-xl transition-all active:scale-98"
               >
                 <WhatsAppIcon className="w-5 h-5 fill-white" />
                 <span className="text-white">SEND ORDER COPY TO WHATSAPP</span>
               </a>
+              <button
+                type="button"
+                onClick={() => setIsPackingSlipOpen(true)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-100 text-slate-950 font-black rounded-2xl text-sm shadow-xl transition-all active:scale-98 cursor-pointer"
+              >
+                <Printer className="w-5 h-5 text-amber-600" />
+                <span>PRINT BILL / INVOICE</span>
+              </button>
             </div>
           </div>
         )}
@@ -221,7 +231,7 @@ export default function OrderConfirmationPage() {
                   {order.status}
                 </span>
               </p>
-              <p className="text-slate-700">Store Hub: {settings?.store_name || 'Vaili Pyro Park'}, Sivakasi</p>
+              <p className="text-slate-700">Store Hub: {settings?.store_name || 'Vaily Pyro Park'}, Sivakasi</p>
             </div>
           </div>
 
@@ -268,13 +278,21 @@ export default function OrderConfirmationPage() {
 
         {/* Navigation & Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Link
               href="/"
               className="flex-1 sm:flex-initial px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs text-center transition-colors"
             >
               Back to Shop
             </Link>
+            <button
+              type="button"
+              onClick={() => setIsPackingSlipOpen(true)}
+              className="flex-1 sm:flex-initial px-5 py-3 bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+            >
+              <Printer className="w-4 h-4 text-slate-700" />
+              <span>Print Bill</span>
+            </button>
             <Link
               href="/track-order"
               className="flex-1 sm:flex-initial px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs text-center flex items-center justify-center gap-1.5 transition-colors"
@@ -303,6 +321,14 @@ export default function OrderConfirmationPage() {
             isOpen={isCancelModalOpen}
             onClose={() => setIsCancelModalOpen(false)}
             onConfirmCancel={handleConfirmCancel}
+          />
+        )}
+
+        {/* Packing Slip & Printable Bill Modal */}
+        {isPackingSlipOpen && (
+          <PackingSlipModal
+            order={order}
+            onClose={() => setIsPackingSlipOpen(false)}
           />
         )}
       </div>

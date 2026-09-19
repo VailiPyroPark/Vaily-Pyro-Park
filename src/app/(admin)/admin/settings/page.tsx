@@ -72,14 +72,14 @@ export default function AdminSettingsPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [settings, setSettings] = useState<StoreSettings>({
-    store_name: 'Vaili Pyro Park',
+    store_name: 'Vaily Pyro Park',
     tagline: 'Sivakasi Direct Fireworks Outlet',
     helpline_mobile: '+91 99521 08746',
     whatsapp_number: '919952108746',
-    gstin: '33AAAFF9012K1Z5',
+    gstin: '',
     announcement_banner: '⚡ DIWALI PRE-BOOKING OPEN: Get up to 80% OFF Factory Direct Rates!',
     discount_percentage: 80,
-    store_address: '142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123',
+    store_address: '3/421 Anjaneyar Nagar, Sattur Main Road, Anuppankulam, Sivakasi.',
     max_order_limit_enabled: false,
     max_order_limit_amount: 50000,
     min_order_tamil_nadu: 3000,
@@ -346,7 +346,7 @@ export default function AdminSettingsPage() {
                 value={settings.gstin}
                 onChange={(e) => setSettings({ ...settings, gstin: e.target.value.toUpperCase() })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono uppercase text-xs focus:outline-none focus:bg-white focus:border-amber-500"
-                placeholder="33AAAFF9012K1Z5"
+                placeholder="Optional (e.g. 33AAAFF9012K1Z5)"
               />
             </div>
           </div>

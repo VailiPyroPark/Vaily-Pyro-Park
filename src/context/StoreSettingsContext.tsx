@@ -6,14 +6,14 @@ import { SettingsService, StoreSettings } from '@/lib/services/settings.service'
 const SETTINGS_STORAGE_KEY = 'vpp_store_settings_cache_v1';
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  store_name: 'Vaili Pyro Park',
+  store_name: 'Vaily Pyro Park',
   tagline: 'Sivakasi Direct Fireworks Outlet',
   helpline_mobile: '+91 99521 08746',
   whatsapp_number: '919952108746',
-  gstin: '33AAAFF9012K1Z5',
+  gstin: '',
   announcement_banner: '⚡ DIWALI PRE-BOOKING OPEN: Get up to 80% OFF Factory Direct Rates!',
   discount_percentage: 80,
-  store_address: '142/A Bypass Road, Sivakasi Industrial Estate, Tamil Nadu - 626123',
+  store_address: '3/421 Anjaneyar Nagar, Sattur Main Road, Anuppankulam, Sivakasi.',
   max_order_limit_enabled: false,
   max_order_limit_amount: 50000,
   min_order_tamil_nadu: 3000,
